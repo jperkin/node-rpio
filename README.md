@@ -19,6 +19,10 @@ Much more to follow...
 
 ## Usage
 
+```bash
+$ npm install rpio
+```
+
 ```js
 var rpio = require('rpio')
 
