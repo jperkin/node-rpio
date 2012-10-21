@@ -24,17 +24,100 @@
 using namespace v8;
 
 /*
- * flash(pin, freq, count)
+ * Set a pin as input
  */
-Handle<Value> Flash(const Arguments& args)
+Handle<Value> SetInput(const Arguments& args)
 {
 	HandleScope scope;
-	int i;
 
-	if (args.Length() != 3) {
-		ThrowException(Exception::TypeError(String::New("Wrong number of arguments")));
+	if (args.Length() != 1) {
+		ThrowException(Exception::TypeError(String::New("Incorrect number of arguments")));
 		return scope.Close(Undefined());
 	}
+
+	if (!args[0]->IsNumber()) {
+		ThrowException(Exception::TypeError(String::New("Incorrect argument type(s)")));
+		return scope.Close(Undefined());
+	}
+
+	bcm2835_gpio_fsel(args[0]->NumberValue(), BCM2835_GPIO_FSEL_INPT);
+
+	return scope.Close(Integer::New(0));
+}
+
+/*
+ * Set a pin as output
+ */
+Handle<Value> SetOutput(const Arguments& args)
+{
+	HandleScope scope;
+
+	if (args.Length() != 1) {
+		ThrowException(Exception::TypeError(String::New("Incorrect number of arguments")));
+		return scope.Close(Undefined());
+	}
+
+	if (!args[0]->IsNumber()) {
+		ThrowException(Exception::TypeError(String::New("Incorrect argument type(s)")));
+		return scope.Close(Undefined());
+	}
+
+	bcm2835_gpio_fsel(args[0]->NumberValue(), BCM2835_GPIO_FSEL_OUTP);
+
+	return scope.Close(Integer::New(0));
+}
+
+/*
+ * Read from a pin
+ */
+Handle<Value> Read(const Arguments& args)
+{
+	HandleScope scope;
+	uint8_t value;
+
+	if (args.Length() != 1) {
+		ThrowException(Exception::TypeError(String::New("Incorrect number of arguments")));
+		return scope.Close(Undefined());
+	}
+
+	if (!args[0]->IsNumber()) {
+		ThrowException(Exception::TypeError(String::New("Incorrect argument type(s)")));
+		return scope.Close(Undefined());
+	}
+
+	value = bcm2835_gpio_lev(args[0]->NumberValue());
+
+	return scope.Close(Integer::New(value));
+}
+
+/*
+ * Write to a pin
+ */
+Handle<Value> Write(const Arguments& args)
+{
+	HandleScope scope;
+
+	if (args.Length() != 2) {
+		ThrowException(Exception::TypeError(String::New("Incorrect number of arguments")));
+		return scope.Close(Undefined());
+	}
+
+	if (!args[0]->IsNumber() || !args[1]->IsNumber()) {
+		ThrowException(Exception::TypeError(String::New("Incorrect argument type(s)")));
+		return scope.Close(Undefined());
+	}
+
+	bcm2835_gpio_write(args[0]->NumberValue(), args[1]->NumberValue());
+
+	return scope.Close(Integer::New(0));
+}
+
+/*
+ * Initialize the bcm2835 interface and check we have permission to access it.
+ */
+Handle<Value> Start(const Arguments& args)
+{
+	HandleScope scope;
 
 	if (geteuid() != 0) {
 		ThrowException(Exception::Error(String::New("You must be root to access GPIO")));
@@ -46,26 +129,26 @@ Handle<Value> Flash(const Arguments& args)
 		return scope.Close(Undefined());
 	}
 
-	if (!args[0]->IsNumber() || !args[1]->IsNumber() || !args[2]->IsNumber()) {
-		ThrowException(Exception::TypeError(String::New("Wrong arguments")));
-		return scope.Close(Undefined());
-	}
-
-	bcm2835_gpio_fsel(args[0]->NumberValue(), BCM2835_GPIO_FSEL_OUTP);
-
-	for (i = 0; i < args[2]->NumberValue(); i++) {
-		bcm2835_gpio_write(args[0]->NumberValue(), HIGH);
-		bcm2835_delay(args[1]->NumberValue());
-		bcm2835_gpio_write(args[0]->NumberValue(), LOW);
-		bcm2835_delay(args[1]->NumberValue());
-	}
-
 	return scope.Close(Undefined());
 }
 
-void init(Handle<Object> target) {
-	target->Set(String::NewSymbol("flash"),
-	    FunctionTemplate::New(Flash)->GetFunction());
+void init(Handle<Object> target)
+{
+
+	target->Set(String::NewSymbol("start"),
+	    FunctionTemplate::New(Start)->GetFunction());
+
+	target->Set(String::NewSymbol("setInput"),
+	    FunctionTemplate::New(SetInput)->GetFunction());
+
+	target->Set(String::NewSymbol("setOutput"),
+	    FunctionTemplate::New(SetOutput)->GetFunction());
+
+	target->Set(String::NewSymbol("read"),
+	    FunctionTemplate::New(Read)->GetFunction());
+
+	target->Set(String::NewSymbol("write"),
+	    FunctionTemplate::New(Write)->GetFunction());
 }
 
 NODE_MODULE(rpio, init)

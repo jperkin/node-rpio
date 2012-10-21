@@ -10,29 +10,54 @@ Barwell's [rpio-gpio.js](https://github.com/JamesBarwell/rpi-gpio.js).  The
 reason for me writing this module instead of using James' is that his uses the
 `/sys` interface which is too slow for my requirements.
 
-## Status
+## Install
 
-Very basic, just enough to interface with the library and flash a pin (assuming
-it is hooked up to an LED) in order to verify it actually works.
-
-Much more to follow...
-
-## Usage
+Easily install the latest via npm:
 
 ```bash
 $ npm install rpio
 ```
 
+## API
+
 ```js
 var rpio = require('rpio')
 
+// Enable a pin and mark as read-only
+rpio.setInput(11)
+
+// Enable a pin and mark as read-write
+rpio.setOutput(12)
+
+// Read value of pin
+console.log('pin 11 is set to ' + rpio.read(11))
+
+// Set pin high (i.e. write '1' to it)
+rpio.write(12, rpio.HIGH)
+```
+
+## Simple demo
+
+```js
 /*
- * Flash pin 17 at 25Hz 1000 times.
- *
- * Note that the currently the pin addressing is BCM mode, RPi will be made
- * the default soon (so this example == RPi pin 11).
+ * Simple demo to flash pin 11 at 100Hz (assuming it's routed to an LED).
  */
-rpio.flash(17, 25, 1000)
+var rpio = require('rpio')
+
+// Set the pin for write mode
+rpio.setOutput(11)
+
+// Set the pin high every 10ms
+setInterval(function() {
+  rpio.write(11, rpio.HIGH)
+}, 10)
+
+// Set the pin low every 10ms, offset by 5ms.
+setTimeout(function() {
+  setInterval(function() {
+    rpio.write(11, rpio.LOW)
+  }, 5)
+}, 10)
 ```
 
 ## Authors and licenses
