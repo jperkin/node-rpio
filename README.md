@@ -56,8 +56,8 @@ setInterval(function() {
 setTimeout(function() {
   setInterval(function() {
     rpio.write(11, rpio.LOW)
-  }, 5)
-}, 10)
+  }, 10)
+}, 5)
 ```
 
 ## Authors and licenses
