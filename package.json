@@ -1,7 +1,7 @@
 {
   "name": "rpio",
   "version": "0.0.4",
-  "description": "Raspberry Pi GPIO library",
+  "description": "Raspberry Pi GPIO library with fast mmap() access",
   "main": "./lib/rpio.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
