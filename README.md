@@ -34,6 +34,9 @@ console.log('pin 11 is set to ' + rpio.read(11))
 
 // Set pin high (i.e. write '1' to it)
 rpio.write(12, rpio.HIGH)
+
+// Set pin low (i.e. write '0' to it)
+rpio.write(12, rpio.LOW)
 ```
 
 ## Simple demo
@@ -47,17 +50,18 @@ var rpio = require('rpio')
 // Set the pin for write mode
 rpio.setOutput(11)
 
-// Set the pin high every 10ms
+/*
+ * Set the pin high every 10ms, and low 5ms after each transition to high.
+ */
 setInterval(function() {
-  rpio.write(11, rpio.HIGH)
-}, 10)
 
-// Set the pin low every 10ms, offset by 5ms.
-setTimeout(function() {
-  setInterval(function() {
+  rpio.write(11, rpio.HIGH)
+
+  setTimeout(function() {
     rpio.write(11, rpio.LOW)
-  }, 10)
-}, 5)
+  }, 5)
+
+}, 10)
 ```
 
 ## Authors and licenses
