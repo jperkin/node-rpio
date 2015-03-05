@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Raspberry Pi GPIO library with fast mmap() access",
   "main": "./lib/rpio.js",
   "scripts": {
