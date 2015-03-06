@@ -94,7 +94,10 @@ pin_write(shim_ctx_t* ctx, shim_args_t* args)
 		return FALSE;
 	}
 
-	bcm2835_gpio_write(pin, on);
+	if (on)
+		bcm2835_gpio_set(pin);
+	else
+		bcm2835_gpio_clr(pin);
 
 	return TRUE;
 }
