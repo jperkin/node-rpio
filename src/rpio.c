@@ -31,7 +31,7 @@
 static int
 pin_function(shim_ctx_t* ctx, shim_args_t* args)
 {
-	uint8_t pin, function;
+	uint32_t pin, function;
 
 	if (!shim_unpack(ctx, args,
 	    SHIM_TYPE_UINT32, &pin,
@@ -43,15 +43,17 @@ pin_function(shim_ctx_t* ctx, shim_args_t* args)
 
 	switch (function) {
 	case 0:
-		bcm2835_gpio_fsel(pin, BCM2835_GPIO_FSEL_INPT);
+		bcm2835_gpio_fsel((uint8_t)pin, BCM2835_GPIO_FSEL_INPT);
 		break;
 	case 1:
-		bcm2835_gpio_fsel(pin, BCM2835_GPIO_FSEL_OUTP);
+		bcm2835_gpio_fsel((uint8_t)pin, BCM2835_GPIO_FSEL_OUTP);
 		break;
 	default:
 		shim_throw_error(ctx, "Unsupported function select");
 		return FALSE;
 	}
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
 
 	return TRUE;
 }
@@ -62,7 +64,7 @@ pin_function(shim_ctx_t* ctx, shim_args_t* args)
 static int
 pin_read(shim_ctx_t* ctx, shim_args_t* args)
 {
-	uint8_t pin, rval;
+	uint32_t pin, rval;
 
 	if (!shim_unpack(ctx, args,
 	    SHIM_TYPE_UINT32, &pin,
@@ -71,7 +73,7 @@ pin_read(shim_ctx_t* ctx, shim_args_t* args)
 		return FALSE;
 	}
 
-	rval = bcm2835_gpio_lev(pin);
+	rval = bcm2835_gpio_lev((uint8_t)pin);
 
 	shim_args_set_rval(ctx, args, shim_integer_new(ctx, rval));
 
@@ -84,7 +86,7 @@ pin_read(shim_ctx_t* ctx, shim_args_t* args)
 static int
 pin_write(shim_ctx_t* ctx, shim_args_t* args)
 {
-	uint8_t pin, on;
+	uint32_t pin, on;
 
 	if (!shim_unpack(ctx, args,
 	    SHIM_TYPE_UINT32, &pin,
@@ -95,9 +97,11 @@ pin_write(shim_ctx_t* ctx, shim_args_t* args)
 	}
 
 	if (on)
-		bcm2835_gpio_set(pin);
+		bcm2835_gpio_set((uint8_t)pin);
 	else
-		bcm2835_gpio_clr(pin);
+		bcm2835_gpio_clr((uint8_t)pin);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
 
 	return TRUE;
 }

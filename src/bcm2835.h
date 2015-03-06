@@ -22,7 +22,7 @@
 /// BCM 2835).
 ///
 /// The version of the package that this documentation refers to can be downloaded 
-/// from http://www.airspayce.com/mikem/bcm2835/bcm2835-1.38.tar.gz
+/// from http://www.airspayce.com/mikem/bcm2835/bcm2835-1.39.tar.gz
 /// You can find the latest version at http://www.airspayce.com/mikem/bcm2835
 ///
 /// Several example programs are provided.
@@ -310,6 +310,11 @@
 ///               Improvements to bcm2835_st_read to account for possible timer overflow, contributed by 'Ed'.<br>
 ///               Added definitions for Raspberry Pi B+ J8 header GPIO pins.<br>
 /// \version 1.38 Added bcm2835_regbase for the benefit of C# wrappers, patch by Frank Hommers <br>
+/// \version 1.39 Beta version of RPi2 compatibility. Not tested here on RPi2 hardware. 
+///               Testers please confirm correct operation on RPi2.<br>
+///               Unneccessary 'volatile' qualifiers removed from all variables and signatures.<br>
+///               Removed unsupportable PWM dividers, based on a report from Christophe Cecillon.<br>
+///               Minor improvements to spi.c example.<br>
 ///
 /// \author  Mike McCauley (mikem@airspayce.com) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 
@@ -334,58 +339,78 @@
 /// Speed of the core clock core_clk
 #define BCM2835_CORE_CLK_HZ				250000000	///< 250 MHz
 
-// Physical addresses for various peripheral register sets
-/// Base Physical Address of the BCM 2835 peripheral registers
-#define BCM2835_PERI_BASE               0x20000000
-/// Base Physical Address of the System Timer registers
-#define BCM2835_ST_BASE			(BCM2835_PERI_BASE + 0x3000)
-/// Base Physical Address of the Pads registers
-#define BCM2835_GPIO_PADS               (BCM2835_PERI_BASE + 0x100000)
-/// Base Physical Address of the Clock/timer registers
-#define BCM2835_CLOCK_BASE              (BCM2835_PERI_BASE + 0x101000)
-/// Base Physical Address of the GPIO registers
-#define BCM2835_GPIO_BASE               (BCM2835_PERI_BASE + 0x200000)
-/// Base Physical Address of the SPI0 registers
-#define BCM2835_SPI0_BASE               (BCM2835_PERI_BASE + 0x204000)
-/// Base Physical Address of the BSC0 registers
-#define BCM2835_BSC0_BASE 		(BCM2835_PERI_BASE + 0x205000)
-/// Base Physical Address of the PWM registers
-#define BCM2835_GPIO_PWM                (BCM2835_PERI_BASE + 0x20C000)
- /// Base Physical Address of the BSC1 registers
-#define BCM2835_BSC1_BASE		(BCM2835_PERI_BASE + 0x804000)
+/// On RPi2 with BCM2836, the base of the peripherals is read from a /proc file
+#define BMC2835_RPI2_DT_FILENAME "/proc/device-tree/soc/ranges"
+/// On RPi2, offset into BMC2835_RPI2_DT_FILENAME for the peripherals base address
+#define BMC2835_RPI2_DT_PERI_BASE_ADDRESS_OFFSET 4
+/// On RPi2, offset into BMC2835_RPI2_DT_FILENAME for the peripherals size address
+#define BMC2835_RPI2_DT_PERI_SIZE_OFFSET 8
 
+/// Physical addresses for various peripheral register sets
+/// Base Physical Address of the BCM 2835 peripheral registers
+/// Note this is different for the RPi2 BCM2836, where this isderived from /proc/device-tree/soc/ranges
+#define BCM2835_PERI_BASE               0x20000000
+/// Size of the perioherals block on RPi 1
+#define BCM2835_PERI_SIZE               0x01000000
+
+/// Offsets for the bases of various peripherals within the peripherals block
+/// Base Address of the System Timer registers
+#define BCM2835_ST_BASE			0x3000
+/// Base Address of the Pads registers
+#define BCM2835_GPIO_PADS               0x100000
+/// Base Address of the Clock/timer registers
+#define BCM2835_CLOCK_BASE              0x101000
+/// Base Address of the GPIO registers
+#define BCM2835_GPIO_BASE               0x200000
+/// Base Address of the SPI0 registers
+#define BCM2835_SPI0_BASE               0x204000
+/// Base Address of the BSC0 registers
+#define BCM2835_BSC0_BASE 		0x205000
+/// Base Address of the PWM registers
+#define BCM2835_GPIO_PWM                0x20C000
+/// Base Address of the BSC1 registers
+#define BCM2835_BSC1_BASE		0x804000
+
+/// Physical address and size of the peripherals block
+/// May be overridden on RPi2
+extern uint32_t *bcm2835_peripherals_base;
+/// Size of the peripherals block to be mapped
+extern uint32_t bcm2835_peripherals_size;
+
+/// Virtual memory address of the mapped peripherals block
+extern void *bcm2835_peripherals;
 
 /// Base of the ST (System Timer) registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_st;
+extern uint32_t *bcm2835_st;
 
 /// Base of the GPIO registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_gpio;
+extern uint32_t *bcm2835_gpio;
 
 /// Base of the PWM registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_pwm;
+extern uint32_t *bcm2835_pwm;
 
 /// Base of the CLK registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_clk;
+extern uint32_t *bcm2835_clk;
 
 /// Base of the PADS registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_pads;
+extern uint32_t *bcm2835_pads;
 
 /// Base of the SPI0 registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_spi0;
+extern uint32_t *bcm2835_spi0;
 
 /// Base of the BSC0 registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_bsc0;
+extern uint32_t *bcm2835_bsc0;
 
 /// Base of the BSC1 registers.
 /// Available after bcm2835_init has been called
-extern volatile uint32_t *bcm2835_bsc1;
+extern uint32_t *bcm2835_bsc1;
 
 /// \brief bcm2835RegisterBase
 /// Register bases for bcm2835_regbase()
@@ -785,10 +810,6 @@ typedef enum
 /// The frequencies shown for each divider have been confirmed by measurement
 typedef enum
 {
-    BCM2835_PWM_CLOCK_DIVIDER_32768 = 32768,   ///< 32768 = 585Hz
-    BCM2835_PWM_CLOCK_DIVIDER_16384 = 16384,   ///< 16384 = 1171.8Hz
-    BCM2835_PWM_CLOCK_DIVIDER_8192  = 8192,    ///< 8192 = 2.34375kHz
-    BCM2835_PWM_CLOCK_DIVIDER_4096  = 4096,    ///< 4096 = 4.6875kHz
     BCM2835_PWM_CLOCK_DIVIDER_2048  = 2048,    ///< 2048 = 9.375kHz
     BCM2835_PWM_CLOCK_DIVIDER_1024  = 1024,    ///< 1024 = 18.75kHz
     BCM2835_PWM_CLOCK_DIVIDER_512   = 512,     ///< 512 = 37.5kHz
@@ -860,7 +881,7 @@ extern "C" {
     /// \param[in] paddr Physical address to read from. See BCM2835_GPIO_BASE etc.
     /// \return the value read from the 32 bit register
     /// \sa Physical Addresses
-    extern uint32_t bcm2835_peri_read(volatile uint32_t* paddr);
+    extern uint32_t bcm2835_peri_read(uint32_t* paddr);
 
 
     /// Reads 32 bit value from a peripheral address without the read barrier
@@ -869,7 +890,7 @@ extern "C" {
     /// \param[in] paddr Physical address to read from. See BCM2835_GPIO_BASE etc.
     /// \return the value read from the 32 bit register
     /// \sa Physical Addresses
-    extern uint32_t bcm2835_peri_read_nb(volatile uint32_t* paddr);
+    extern uint32_t bcm2835_peri_read_nb(uint32_t* paddr);
 
 
     /// Writes 32 bit value from a peripheral address
@@ -878,7 +899,7 @@ extern "C" {
     /// \param[in] paddr Physical address to read from. See BCM2835_GPIO_BASE etc.
     /// \param[in] value The 32 bit value to write
     /// \sa Physical Addresses
-    extern void bcm2835_peri_write(volatile uint32_t* paddr, uint32_t value);
+    extern void bcm2835_peri_write(uint32_t* paddr, uint32_t value);
 
     /// Writes 32 bit value from a peripheral address without the write barrier
     /// You should only use this when your code has previously called bcm2835_peri_write()
@@ -886,7 +907,7 @@ extern "C" {
     /// \param[in] paddr Physical address to read from. See BCM2835_GPIO_BASE etc.
     /// \param[in] value The 32 bit value to write
     /// \sa Physical Addresses
-    extern void bcm2835_peri_write_nb(volatile uint32_t* paddr, uint32_t value);
+    extern void bcm2835_peri_write_nb(uint32_t* paddr, uint32_t value);
 
     /// Alters a number of bits in a 32 peripheral regsiter.
     /// It reads the current valu and then alters the bits deines as 1 in mask, 
@@ -899,7 +920,7 @@ extern "C" {
     /// \param[in] value The 32 bit value to write, masked in by mask.
     /// \param[in] mask Bitmask that defines the bits that will be altered in the register.
     /// \sa Physical Addresses
-    extern void bcm2835_peri_set_bits(volatile uint32_t* paddr, uint32_t value, uint32_t mask);
+    extern void bcm2835_peri_set_bits(uint32_t* paddr, uint32_t value, uint32_t mask);
     /// @} // end of lowlevel
 
     /// \defgroup gpio GPIO register access

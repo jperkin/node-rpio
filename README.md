@@ -19,22 +19,31 @@ $ npm install rpio
 ## API
 
 ```js
-var rpio = require('rpio')
+var rpio = require('rpio');
 
-// Enable a pin and mark as read-only
-rpio.setInput(11)
+/*
+ * By default the 'gpio' layout is used, i.e. GPIOxx, which maps directly to
+ * the underlying pin identifiers used by the bcm2835 chip.  If you prefer,
+ * you can refer to pins by their physical header location instead by using:
+ *
+ *    rpio.setMode('physical').
+ */
+rpio.setMode('gpio');
 
-// Enable a pin and mark as read-write
-rpio.setOutput(12)
+// Enable GPIO17 (physical pin 11) and set as read-only
+rpio.setInput(17);
 
-// Read value of pin
-console.log('pin 11 is set to ' + rpio.read(11))
+// Enable GPIO18 (physical pin 12) and set as read-write
+rpio.setOutput(18);
 
-// Set pin high (i.e. write '1' to it)
-rpio.write(12, rpio.HIGH)
+// Read value of GPIO17
+console.log('GPIO17 is set to ' + rpio.read(17));
 
-// Set pin low (i.e. write '0' to it)
-rpio.write(12, rpio.LOW)
+// Set GPIO18 high (i.e. write '1' to it)
+rpio.write(18, rpio.HIGH);
+
+// Set GPIO18 low (i.e. write '0' to it)
+rpio.write(18, rpio.LOW);
 ```
 
 ## Simple demo
@@ -43,23 +52,26 @@ rpio.write(12, rpio.LOW)
 /*
  * Simple demo to flash pin 11 at 100Hz (assuming it's routed to an LED).
  */
-var rpio = require('rpio')
+var rpio = require('rpio');
 
-// Set the pin for write mode
-rpio.setOutput(11)
+// Use physical layout for this one.
+rpio.setMode('physical');
+
+// Set physical pin 11 / GPIO17 for write mode
+rpio.setOutput(11);
 
 /*
  * Set the pin high every 10ms, and low 5ms after each transition to high.
  */
 setInterval(function() {
 
-  rpio.write(11, rpio.HIGH)
+	rpio.write(11, rpio.HIGH);
 
-  setTimeout(function() {
-    rpio.write(11, rpio.LOW)
-  }, 5)
+	setTimeout(function() {
+		rpio.write(11, rpio.LOW);
+	}, 5);
 
-}, 10)
+}, 10);
 ```
 
 ## Authors and licenses
