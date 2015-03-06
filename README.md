@@ -1,14 +1,12 @@
 node-rpio
 =========
 
-This is a node.js add-on which wraps around Mike McCauley's
+This is a super-fast nodejs addon which wraps around Mike McCauley's
 [bcm2835](http://www.open.com.au/mikem/bcm2835/) library to allow `mmap`
 access via `/dev/mem` to the GPIO pins.
 
-If you want something more featureful then for now you should check out James
-Barwell's [rpio-gpio.js](https://github.com/JamesBarwell/rpi-gpio.js).  The
-reason for me writing this module instead of using James' is that his uses the
-`/sys` interface which is too slow for my requirements.
+Most other GPIO modules use the slower `/sys` file system interface.  You
+should find this module significantly faster than the alternatives.
 
 ## Install
 
