@@ -6,7 +6,8 @@ This is a super-fast nodejs addon which wraps around Mike McCauley's
 access via `/dev/mem` to the GPIO pins.
 
 Most other GPIO modules use the slower `/sys` file system interface.  You
-should find this module significantly faster than the alternatives.
+should find this module significantly faster than the alternatives.  The only
+drawback is that root access is required to open `/dev/mem`.
 
 ## Install
 
@@ -74,8 +75,8 @@ setInterval(function() {
 }, 10);
 ```
 
-## Authors and licenses
+## Authors/Licenses
 
-Mike McCauley wrote src/bcm2835.{cc,h} which are under the GPL.
+Mike McCauley wrote `src/bcm2835.{c,h}` which are under the GPL.
 
 I wrote the rest, which is under the ISC license unless otherwise specified.
