@@ -110,7 +110,7 @@ pin_write(shim_ctx_t* ctx, shim_args_t* args)
  * Initialize the bcm2835 interface and check we have permission to access it.
  */
 static int
-init(shim_ctx_t* ctx, shim_args_t* args)
+bcm_init(shim_ctx_t* ctx, shim_args_t* args)
 {
 	if (geteuid() != 0) {
 		shim_throw_error(ctx, "You must be root to access GPIO");
@@ -125,14 +125,23 @@ init(shim_ctx_t* ctx, shim_args_t* args)
 	return TRUE;
 }
 
+static int
+bcm_close(shim_ctx_t* ctx, shim_args_t* args)
+{
+	bcm2835_close();
+
+	return TRUE;
+}
+
 int
 setup(shim_ctx_t* ctx, shim_val_t* exports, shim_val_t* module)
 {
 	shim_fspec_t funcs[] = {
-		SHIM_FS(init),
+		SHIM_FS(bcm_init),
 		SHIM_FS(pin_function),
 		SHIM_FS(pin_read),
 		SHIM_FS(pin_write),
+		SHIM_FS(bcm_close),
 		SHIM_FS_END
 	};
 
