@@ -34,7 +34,7 @@ underlying pin identifiers used by the `bcm2835` chip.  If you prefer, you can
 refer to pins by their physical header location instead.
 
 ```js
-rpio.setMode('physical);   /* Use the physical P1-P26/P40 layout */
+rpio.setMode('physical');  /* Use the physical P1-P26/P40 layout */
 rpio.setMode('gpio');      /* The default GPIOxx numbering system */
 ```
 
@@ -77,7 +77,7 @@ rpio.spiBegin();           /* Switch GPIO7-GPIO11 to SPI mode */
 Choose which of the chip select / chip enable pins to control:
 
 Value | Pin
-------|----
+:----:|----
 0     | SPI_CE0 (GPIO8)
 1     | SPI_CE1 (GPIO7)
 2     | Both
