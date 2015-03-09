@@ -76,13 +76,14 @@ rpio.spiBegin();           /* Switch GPIO7-GPIO11 to SPI mode */
 
 Choose which of the chip select / chip enable pins to control:
 
-Value | Pin
-:----:|----
-0     | SPI_CE0 (GPIO8)
-1     | SPI_CE1 (GPIO7)
-2     | Both
-
 ```js
+/*
+ *  Value | Pin
+ *  ------|----
+ *    0   | SPI_CE0 (GPIO8)
+ *    1   | SPI_CE1 (GPIO7)
+ *    2   | Both
+ */
 rpio.spiChipSelect(0);
 ```
 
@@ -103,14 +104,15 @@ rpio.spiSetClockDivider(128);   /* Set SPI speed to 1.95MHz */
 
 Set the SPI Data Mode:
 
-Mode | CPOL | CPHA
-:---:|:----:|:---:
-  0  |  0   |  0
-  1  |  0   |  1
-  2  |  1   |  0
-  3  |  1   |  1
-
 ```js
+/*
+ *  Mode | CPOL | CPHA
+ *  -----|------|-----
+ *    0  |  0   |  0
+ *    1  |  0   |  1
+ *    2  |  1   |  0
+ *    3  |  1   |  1
+ */
 rpio.spiSetDataMode(0);         /* 0 is the default */
 ```
 
