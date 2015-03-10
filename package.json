@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Raspberry Pi GPIO library with fast mmap() access",
   "main": "./lib/rpio.js",
   "scripts": {
@@ -15,13 +15,14 @@
     "url": "git://github.com/jperkin/node-rpio.git"
   },
   "keywords": [
-    "rpi",
     "gpio",
+    "pi",
     "raspberry",
     "raspberrypi",
-    "pi"
+    "rpi",
+    "spi"
   ],
-  "author": "Jonathan Perkin <jonathan@perkin.org.uk> (http://www.perkin.org.uk)",
+  "author": "Jonathan Perkin <jonathan@perkin.org.uk> (http://www.perkin.org.uk/)",
   "license": "ISC / GPL",
   "gypfile": true
 }
