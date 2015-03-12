@@ -21,12 +21,7 @@
 #include "shim.h"
 
 /*
- * Function select.  Currently supported:
- *
- *	BCM2835_GPIO_FSEL_INPT = 0b000
- *	BCM2835_GPIO_FSEL_OUTP = 0b001
- *
- * None of the alternate functions are currently supported.
+ * Function select.  Pass through all values supported by bcm2835.
  *
  */
 static int
@@ -42,17 +37,12 @@ pin_function(shim_ctx_t* ctx, shim_args_t* args)
 		return FALSE;
 	}
 
-	switch (function) {
-	case 0:
-		bcm2835_gpio_fsel((uint8_t)pin, BCM2835_GPIO_FSEL_INPT);
-		break;
-	case 1:
-		bcm2835_gpio_fsel((uint8_t)pin, BCM2835_GPIO_FSEL_OUTP);
-		break;
-	default:
+	if (function > 7) {
 		shim_throw_error(ctx, "Unsupported function select");
 		return FALSE;
 	}
+
+	bcm2835_gpio_fsel((uint8_t)pin, (uint8_t)function);
 
 	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
 
@@ -238,6 +228,88 @@ spi_end(shim_ctx_t* ctx, shim_args_t* args)
 	return TRUE;
 }
 
+/*
+ * PWM functions
+ */
+static int
+pwm_set_clock(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t divisor;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &divisor,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_pwm_set_clock(divisor);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+pwm_set_mode(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t channel, markspace, enabled;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &channel,
+	    SHIM_TYPE_UINT32, &markspace,
+	    SHIM_TYPE_UINT32, &enabled,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_pwm_set_mode((uint8_t)channel, (uint8_t)markspace, (uint8_t)enabled);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+pwm_set_range(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t channel, range;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &channel,
+	    SHIM_TYPE_UINT32, &range,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_pwm_set_range((uint8_t)channel, range);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+pwm_set_data(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t channel, data;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &channel,
+	    SHIM_TYPE_UINT32, &data,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_pwm_set_data((uint8_t)channel, data);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
 
 /*
  * Initialize the bcm2835 interface and check we have permission to access it.
@@ -281,6 +353,10 @@ setup(shim_ctx_t* ctx, shim_val_t* exports, shim_val_t* module)
 		SHIM_FS(spi_set_data_mode),
 		SHIM_FS(spi_transfer),
 		SHIM_FS(spi_end),
+		SHIM_FS(pwm_set_clock),
+		SHIM_FS(pwm_set_mode),
+		SHIM_FS(pwm_set_range),
+		SHIM_FS(pwm_set_data),
 		SHIM_FS(bcm_close),
 		SHIM_FS_END
 	};
