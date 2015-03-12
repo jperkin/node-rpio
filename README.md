@@ -80,10 +80,10 @@ rpio.setOutput(11);
 
 /* Set the pin high every 10ms, and low 5ms after each transition to high */
 setInterval(function() {
-	rpio.write(11, rpio.HIGH);
-	setTimeout(function() {
-		rpio.write(11, rpio.LOW);
-	}, 5);
+        rpio.write(11, rpio.HIGH);
+        setTimeout(function() {
+                rpio.write(11, rpio.LOW);
+        }, 5);
 }, 10);
 ```
 
