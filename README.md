@@ -115,8 +115,8 @@ or `.i2cSetClockDivider()` to set it based on a divisor of the base 250MHz
 rate.
 
 ```js
-rpio.i2cSetBaudRate(100000);    /* 100kHz
-rpio/i2cSetClockDivider(2500);  /* 250MHz / 2500 = 100kHz */
+rpio.i2cSetBaudRate(100000);    /* 100kHz */
+rpio.i2cSetClockDivider(2500);  /* 250MHz / 2500 = 100kHz */
 ```
 
 Read `len` bytes from the i²c slave, returning a Buffer of bytes.
