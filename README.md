@@ -65,7 +65,7 @@ rpio.write(18, rpio.HIGH);
 rpio.write(18, rpio.LOW);
 ```
 
-#### Simple GPIO Demo
+#### GPIO Demo
 
 The code below continuously flashes an LED connected to pin 11 at 100Hz.
 
