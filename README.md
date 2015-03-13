@@ -9,7 +9,7 @@ Most other GPIO modules use the slower `/sys` file system interface.  You
 should find this module significantly faster than the alternatives.  The only
 drawback is that root access is required to open `/dev/mem`.
 
-This module also includes support for PWM and SPI.
+This module also includes support for i²c, PWM, and SPI.
 
 ## Install
 
@@ -87,6 +87,116 @@ setInterval(function() {
 }, 10);
 ```
 
+### i²c
+
+i²c is primarily of use for driving LCD displays, and makes use of pins 3 and 5
+(GPIO0/GPIO1 on Rev 1, GPIO2/GPIO3 on Rev 2 and newer).  The bcm2835 library
+automatically detects which Raspberry Pi revision you are running, so you do
+not need to worry about which i²c bus to configure.
+
+To get started call `.i2cBegin()` which assigns pins 3 and 5 to i²c use.  Until
+`.i2cEnd()` is called they won't be available for GPIO use.
+
+```js
+rpio.i2cBegin();
+```
+
+Configure the slave address.  This is between `0 - 0x7f`, and it can be helpful
+to run the `i2cdetect` program to figure out where your devices are if you are
+unsure.
+
+```js
+rpio.i2cSetSlaveAddress(0x20);
+```
+
+Set the baud rate.  You can do this two different ways, depending on your
+preference.  Either use `.i2cSetBaudRate()` to directly set the speed in hertz,
+or `.i2cSetClockDivider()` to set it based on a divisor of the base 250MHz
+rate.
+
+```js
+rpio.i2cSetBaudRate(100000);    /* 100kHz
+rpio/i2cSetClockDivider(2500);  /* 250MHz / 2500 = 100kHz */
+```
+
+Read `len` bytes from the i²c slave, returning a Buffer of bytes.
+
+```js
+var buf = new Buffer(32);
+buf = rpio.i2cRead(32);
+```
+
+Write `len` bytes of a buffer to the i²c slave.
+
+```js
+var buf = new Buffer([0x0b, 0x0e, 0x0e, 0x0f]);
+rpio.i2cWrite(buf, buf.length);
+```
+
+Finally, turn off the i²c interface and return the pins to GPIO.
+
+```js
+rpio.i2cEnd();
+```
+
+#### i²c Demo
+
+The code below writes two strings to a 16x2 LCD.
+
+```js
+var rpio = require('rpio');
+
+/*
+ * Magic numbers to initialise the i2c display device and write output,
+ * cribbed from various python drivers.
+ */
+var init = new Buffer([0x03, 0x03, 0x03, 0x02, 0x28, 0x0c, 0x01, 0x06]);
+var LCD_LINE1 = 0x80, LCD_LINE2 = 0xc0;
+var LCD_ENABLE = 0x04, LCD_BACKLIGHT = 0x08;
+
+/*
+ * Data is written 4 bits at a time with the lower 4 bits containing the mode.
+ */
+function lcdwrite4(data)
+{
+        rpio.i2cWrite(Buffer([(data | LCD_BACKLIGHT)]), 1);
+        rpio.i2cWrite(Buffer([(data | LCD_ENABLE | LCD_BACKLIGHT)]), 1);
+        rpio.i2cWrite(Buffer([((data & ~LCD_ENABLE) | LCD_BACKLIGHT)]), 1);
+}
+function lcdwrite(data, mode)
+{
+        lcdwrite4(mode | (data & 0xF0));
+        lcdwrite4(mode | ((data << 4) & 0xF0));
+}
+
+/*
+ * Write a string to the specified LCD line.
+ */
+function lineout(str, addr)
+{
+        lcdwrite(addr, 0);
+
+        str.split('').forEach(function (c) {
+                lcdwrite(c.charCodeAt(0), 1);
+        });
+}
+
+/*
+ * We can now start the program, talking to the i2c LCD at address 0x27.
+ */
+rpio.i2cBegin();
+rpio.i2cSetSlaveAddress(0x27);
+rpio.i2cSetBaudRate(10000);
+
+for (var i = 0; i < init.length; i++)
+        lcdwrite(init[i], 0);
+
+lineout("node.js i2c LCD!", LCD_LINE1);
+lineout("npm install rpio", LCD_LINE2);
+
+rpio.i2cEnd();
+```
+
 ### PWM
 
 Pulse Width Modulation (PWM) allows you to create analog output from the
@@ -123,7 +233,7 @@ Finally, set the PWM width for a pin with `pwmSetData()`.
 rpio.pwmSetData(18, 512);
 ```
 
-#### Simple PWM Demo
+#### PWM Demo
 
 The code below pulses an LED 5 times before exiting.
 
@@ -237,7 +347,7 @@ purpose use.
 rpio.spiEnd();
 ```
 
-#### Simple SPI Demo
+#### SPI Demo
 
 The code below reads the 128x8 contents of an AT93C46 serial EEPROM.
 

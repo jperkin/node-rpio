@@ -98,6 +98,139 @@ pin_write(shim_ctx_t* ctx, shim_args_t* args)
 }
 
 /*
+ * i2c functions
+ */
+static int
+i2c_begin(shim_ctx_t* ctx, shim_args_t* args)
+{
+	bcm2835_i2c_begin();
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+i2c_set_clock_divider(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t div;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &div,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_i2c_setClockDivider((uint16_t)div);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+i2c_set_baudrate(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t baud;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &baud,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_i2c_set_baudrate(baud);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+i2c_set_slave_address(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t addr;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &addr,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	bcm2835_i2c_setSlaveAddress((uint8_t)addr);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+static int
+i2c_read(shim_ctx_t* ctx, shim_args_t* args)
+{
+	uint32_t len;
+	char *rx;
+
+	if (!shim_unpack(ctx, args,
+	    SHIM_TYPE_UINT32, &len,
+	    SHIM_TYPE_UNKNOWN)) {
+		shim_throw_error(ctx, "Incorrect arguments");
+		return FALSE;
+	}
+
+	rx = malloc(len);
+
+	bcm2835_i2c_read(rx, len);
+
+	shim_args_set_rval(ctx, args, shim_buffer_new_copy(ctx, rx, len));
+
+	free(rx);
+
+	return TRUE;
+}
+
+static int
+i2c_write(shim_ctx_t* ctx, shim_args_t* args)
+{
+	shim_val_t *buf;
+	uint32_t len;
+	uint8_t rval;
+	char *tx;
+
+	buf = shim_args_get(args, 0);
+
+	if (!shim_value_is(buf, SHIM_TYPE_BUFFER)) {
+		shim_throw_error(ctx, "data is not a buffer");
+		return FALSE;
+	}
+
+	if (!shim_unpack_one(ctx, args, 1, SHIM_TYPE_UINT32, &len)) {
+		shim_throw_error(ctx, "len is not an integer");
+		return FALSE;
+	}
+
+	tx = shim_buffer_value(buf);
+
+	rval = bcm2835_i2c_write(tx, len);
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, rval));
+
+	return TRUE;
+}
+
+static int
+i2c_end(shim_ctx_t* ctx, shim_args_t* args)
+{
+	bcm2835_i2c_end();
+
+	shim_args_set_rval(ctx, args, shim_integer_new(ctx, 0));
+
+	return TRUE;
+}
+
+/*
  * SPI functions.
  */
 static int
@@ -346,6 +479,13 @@ setup(shim_ctx_t* ctx, shim_val_t* exports, shim_val_t* module)
 		SHIM_FS(pin_function),
 		SHIM_FS(pin_read),
 		SHIM_FS(pin_write),
+		SHIM_FS(i2c_begin),
+		SHIM_FS(i2c_set_clock_divider),
+		SHIM_FS(i2c_set_baudrate),
+		SHIM_FS(i2c_set_slave_address),
+		SHIM_FS(i2c_read),
+		SHIM_FS(i2c_write),
+		SHIM_FS(i2c_end),
 		SHIM_FS(spi_begin),
 		SHIM_FS(spi_chip_select),
 		SHIM_FS(spi_set_cs_polarity),
