@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Raspberry Pi GPIO library with fast mmap() access",
   "main": "./lib/rpio.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "install": "node-gyp rebuild"
   },
   "dependencies": {
-    "addon-layer": "git://github.com/tjfontaine/node-addon-layer.git"
+    "addon-layer": "git://github.com/tjfontaine/node-addon-layer.git",
+    "bindings": "*"
   },
   "repository": {
     "type": "git",

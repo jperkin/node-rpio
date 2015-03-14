@@ -4,7 +4,7 @@
   },
   "targets": [
     {
-      "target_name": "rpio",
+      "target_name": "shim",
       "dependencies": [ '<(node_addon)/binding.gyp:addon-layer' ],
       "include_dirs": [ '<(node_addon)/include' ],
       "sources": [
