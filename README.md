@@ -214,7 +214,7 @@ rpio.setFunction(18, rpio.PWM); /* GPIO18/Pin12
 ```
 
 Set the PWM refresh rate with `pwmSetClockDivider()`.  This is a power-of-two
-divisor of the base 19.2MHz rate, with a minimum of 2048 (9.375kHz).
+divisor of the base 19.2MHz rate, with a minimum of 4096 (4.6875kHz).
 
 ```js
 rpio.pwmSetClockDivider(64);    /* Set PWM refresh rate to 300kHz */
