@@ -26,6 +26,6 @@
     "spi"
   ],
   "author": "Jonathan Perkin <jonathan@perkin.org.uk> (http://www.perkin.org.uk/)",
-  "license": "ISC / GPL",
+  "license": "ISC AND GPL-2.0",
   "gypfile": true
 }
