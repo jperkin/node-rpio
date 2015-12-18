@@ -119,18 +119,16 @@ rpio.i2cSetBaudRate(100000);    /* 100kHz */
 rpio.i2cSetClockDivider(2500);  /* 250MHz / 2500 = 100kHz */
 ```
 
-Read `len` bytes from the i²c slave, returning a Buffer of bytes.
+Read from and write to the i²c slave.  Both functions take a buffer and
+optional length argument, defaulting to the length of the buffer if not
+specified.
 
 ```js
-var buf = new Buffer(32);
-buf = rpio.i2cRead(32);
-```
+var txbuf = new Buffer([0x0b, 0x0e, 0x0e, 0x0f]);
+var rxbuf = new Buffer(32);
 
-Write `len` bytes of a buffer to the i²c slave.
-
-```js
-var buf = new Buffer([0x0b, 0x0e, 0x0e, 0x0f]);
-rpio.i2cWrite(buf, buf.length);
+rpio.i2cWrite(txbuf);		/* Sends 4 bytes */
+rpio.i2cRead(rxbuf, 16);	/* Reads 16 bytes */
 ```
 
 Finally, turn off the i²c interface and return the pins to GPIO.
@@ -159,9 +157,9 @@ var LCD_ENABLE = 0x04, LCD_BACKLIGHT = 0x08;
  */
 function lcdwrite4(data)
 {
-        rpio.i2cWrite(Buffer([(data | LCD_BACKLIGHT)]), 1);
-        rpio.i2cWrite(Buffer([(data | LCD_ENABLE | LCD_BACKLIGHT)]), 1);
-        rpio.i2cWrite(Buffer([((data & ~LCD_ENABLE) | LCD_BACKLIGHT)]), 1);
+        rpio.i2cWrite(Buffer([(data | LCD_BACKLIGHT)]));
+        rpio.i2cWrite(Buffer([(data | LCD_ENABLE | LCD_BACKLIGHT)]));
+        rpio.i2cWrite(Buffer([((data & ~LCD_ENABLE) | LCD_BACKLIGHT)]));
 }
 function lcdwrite(data, mode)
 {
@@ -334,10 +332,17 @@ Once everything is set up we can transfer data.  Data is sent and received in
 8-bit chunks via buffers which should be the same size.
 
 ```js
-var tx = new Buffer([0x3, 0x0, 0xff, 0xff]);
-var rx = new Buffer(tx.length);
+var txbuf = new Buffer([0x3, 0x0, 0xff, 0xff]);
+var rxbuf = new Buffer(txbuf.length);
 
-rx = rpio.spiTransfer(tx, tx.length);
+rpio.spiTransfer(txbuf, rxbuf, txbuf.length);
+```
+
+If you only need to send data and do not care about the data coming back, you
+can use the slightly faster `spiWrite()` call:
+
+```js
+rpio.spiWrite(txbuf, txbuf.length);
 ```
 
 When you're finished call `.spiEnd()` to release the pins back to general
@@ -378,7 +383,7 @@ var i, j = 0;
 
 for (i = 0; i < 128; i++, ++j) {
         tx[1] = i;
-        rx = rpio.spiTransfer(tx, 4);
+        rpio.spiTransfer(tx, rx, 4);
         out = ((rx[2] << 1) | (rx[3] >> 7));
         process.stdout.write(out.toString(16) + ((j % 16 == 0) ? "\n" : " "));
 }
