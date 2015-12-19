@@ -1,15 +1,33 @@
 node-rpio
 =========
 
-This is a super-fast nodejs addon which wraps around Mike McCauley's
-[bcm2835](http://www.open.com.au/mikem/bcm2835/) library to allow `mmap`
-access via `/dev/mem` to the GPIO pins.
+This is a high performance nodejs addon which provides access to the Raspberry
+Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
-Most other GPIO modules use the slower `/sys` file system interface.  You
-should find this module significantly faster than the alternatives.  The only
-drawback is that root access is required to open `/dev/mem`.
+Most other GPIO modules use the `/sys` file system interface, whereas this
+addon links directly to Mike McCauley's
+[bcm2835](http://www.open.com.au/mikem/bcm2835/) library which `mmap()`s the
+underlying hardware.  This makes this module significantly faster than the
+alternatives, provides synchronous access making code a lot simpler, as well as
+supporting the additional i²c, PWM, and SPI functions which are not all
+available via the `/sys` interface.
 
-This module also includes support for i²c, PWM, and SPI.
+How much faster?  Here is a [simple
+test](https://gist.github.com/jperkin/e1f0ce996c83ccf2bca9):
+
+|              Module | Turn a pin on/off 1 million times (seconds) |
+|--------------------:|--------------------------------------------:|
+|   rpi-gpio (`/sys`) |                                     701.023 |
+|     rpio (`mmap()`) |                                       2.907 |
+
+Writing to the hardware directly also means you don't need any asynchronous
+callback handling to wait for `/sys` operations to complete, greatly
+simplifying code.
+
+As this module writes directly to hardware, you need to run as root for access
+to `/dev/mem`.  If this is unsuitable for your application you'll need to use
+one of the `/sys` modules where you can configure permissions to regular users
+via the `gpio` group.
 
 ## Install
 
