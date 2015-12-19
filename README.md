@@ -14,7 +14,7 @@ var rpio = require('rpio');
 
 /*
  * Setup pin 11 / GPIO17 for read-only and read its value.
- *
+ */
 rpio.setInput(11);
 console.log('Pin 11 is set to ' + rpio.read(11));
 
