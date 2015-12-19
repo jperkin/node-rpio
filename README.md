@@ -30,10 +30,10 @@ rpio.setOutput(12, rpio.LOW);
  * in these programs you don't care about that, preferring the simpler code.
  */
 for (var i = 0; i < 5; i++) {
-	rpio.write(12, rpio.HIGH);
-	rpio.sleep(1);
-	rpio.write(12, rpio.LOW);
-	rpio.sleep(1);
+        rpio.write(12, rpio.HIGH);
+        rpio.sleep(1);
+        rpio.write(12, rpio.LOW);
+        rpio.sleep(1);
 }
 ```
 
@@ -188,8 +188,8 @@ specified.
 var txbuf = new Buffer([0x0b, 0x0e, 0x0e, 0x0f]);
 var rxbuf = new Buffer(32);
 
-rpio.i2cWrite(txbuf);		/* Sends 4 bytes */
-rpio.i2cRead(rxbuf, 16);	/* Reads 16 bytes */
+rpio.i2cWrite(txbuf);           /* Sends 4 bytes */
+rpio.i2cRead(rxbuf, 16);        /* Reads 16 bytes */
 ```
 
 Finally, turn off the i²c interface and return the pins to GPIO.
