@@ -4,7 +4,7 @@
   "description": "High Performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
   "main": "./lib/rpio.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "true",
     "install": "node-gyp rebuild"
   },
   "dependencies": {
