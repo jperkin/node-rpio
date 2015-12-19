@@ -19,7 +19,7 @@ rpio.setInput(11);
 console.log('Pin 11 is set to ' + rpio.read(11));
 
 /*
- * Setup pin 11 / GPIO17 for read-write and set its initial state to
+ * Setup pin 12 / GPIO18 for read-write and set its initial state to
  * high.  The state is set prior to the pin being activated, so is safe
  * for devices which must avoid floating, even if only for milliseconds.
  */
