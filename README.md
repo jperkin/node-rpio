@@ -7,6 +7,27 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 [![Build Status](https://travis-ci.org/jperkin/node-rpio.svg?branch=master)](https://travis-ci.org/jperkin/node-rpio)
 [![NPM version](https://badge.fury.io/js/rpio.svg)](http://badge.fury.io/js/rpio)
 
+## Quickstart
+
+```js
+var rpio = require('rpio');
+
+/*
+ * Setup pin 11 / GPIO17 for read-only and read its value.
+ *
+rpio.setInput(11);
+console.log('Pin 11 is set to ' + rpio.read(11));
+
+/*
+ * Setup pin 11 / GPIO17 for read-write and set its initial state to
+ * high.  The state is set prior to the pin being activated, so is safe
+ * for devices which must avoid floating, even if only for milliseconds.
+ */
+rpio.setOutput(12, rpio.HIGH);
+```
+
+## Why use rpio?
+
 Most other GPIO modules use the `/sys` file system interface, whereas this
 addon links directly to Mike McCauley's
 [bcm2835](http://www.open.com.au/mikem/bcm2835/) library which `mmap()`s the
@@ -25,10 +46,13 @@ test](https://gist.github.com/jperkin/e1f0ce996c83ccf2bca9):
 
 Writing to the hardware directly also means you don't need any asynchronous
 callback handling to wait for `/sys` operations to complete, greatly
-simplifying code.  The one drawback is that you need to run as root for access
-to `/dev/mem`.  If this is unsuitable for your application you'll need to use
-one of the `/sys` modules where you can configure permissions to regular users
-via the `gpio` group.
+simplifying code.  You also cannot set an initial write state for a pin via
+`/sys` which may not be suitable for all devices.
+
+The one drawback is that you need to run as root for access to `/dev/mem`.  If
+this is unsuitable for your application you'll need to use one of the `/sys`
+modules where you can configure permissions to regular users via the `gpio`
+group.
 
 ## Install
 
@@ -95,7 +119,7 @@ rpio.write(12, rpio.HIGH);
 rpio.write(12, rpio.LOW);
 ```
 
-#### GPIO Demo
+#### GPIO demo
 
 The code below continuously flashes an LED connected to pin 11 at 100Hz.
 
@@ -163,7 +187,7 @@ Finally, turn off the i²c interface and return the pins to GPIO.
 rpio.i2cEnd();
 ```
 
-#### i²c Demo
+#### i²c demo
 
 The code below writes two strings to a 16x2 LCD.
 
@@ -227,7 +251,11 @@ Pulse Width Modulation (PWM) allows you to create analog output from the
 digital pins.  This can be used, for example, to make an LED appear to pulse
 rather than be fully off or on.
 
-Only certain pins support PWM:
+The Broadcom chipset supports hardware PWM, i.e. you configure it with the
+appropriate values and it will generate the required pulse.  This is much more
+efficient and accurate than emulating it in software (by setting pins high and
+low at particular times), but you are limited to only certain pins supporting
+hardware PWM:
 
 * 26-pin models: pin 12
 * 40-pin models: pins 12, 19, 33, 35
@@ -258,7 +286,7 @@ Finally, set the PWM width for a pin with `pwmSetData()`.
 rpio.pwmSetData(12, 512);
 ```
 
-#### PWM Demo
+#### PWM demo
 
 The code below pulses an LED 5 times before exiting.
 
@@ -387,7 +415,7 @@ purpose use.
 rpio.spiEnd();
 ```
 
-#### SPI Demo
+#### SPI demo
 
 The code below reads the 128x8 contents of an AT93C46 serial EEPROM.
 
