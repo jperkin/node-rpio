@@ -4,6 +4,9 @@ node-rpio
 This is a high performance nodejs addon which provides access to the Raspberry
 Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
+[![Build Status](https://travis-ci.org/jperkin/node-rpio.svg?branch=master)](https://travis-ci.org/jperkin/node-rpio)
+[![NPM version](https://badge.fury.io/js/rpio.svg)](http://badge.fury.io/js/rpio)
+
 Most other GPIO modules use the `/sys` file system interface, whereas this
 addon links directly to Mike McCauley's
 [bcm2835](http://www.open.com.au/mikem/bcm2835/) library which `mmap()`s the
