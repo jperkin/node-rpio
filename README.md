@@ -22,9 +22,7 @@ test](https://gist.github.com/jperkin/e1f0ce996c83ccf2bca9):
 
 Writing to the hardware directly also means you don't need any asynchronous
 callback handling to wait for `/sys` operations to complete, greatly
-simplifying code.
-
-As this module writes directly to hardware, you need to run as root for access
+simplifying code.  The one drawback is that you need to run as root for access
 to `/dev/mem`.  If this is unsuitable for your application you'll need to use
 one of the `/sys` modules where you can configure permissions to regular users
 via the `gpio` group.
@@ -39,7 +37,7 @@ $ npm install rpio
 
 ## API
 
-Requiring the addon initializes the `bcm2835` driver ready to accept commands.
+Requiring the addon initializes the bcm2835 library ready to accept commands.
 
 ```js
 var rpio = require('rpio');
@@ -47,25 +45,36 @@ var rpio = require('rpio');
 
 ### GPIO
 
-By default the `gpio` layout is used, i.e. `GPIOxx`, which maps directly to the
-underlying pin identifiers used by the `bcm2835` chip.  If you prefer, you can
-refer to pins by their physical header location instead.
+There are two naming schemes when referring to GPIO pins:
+
+* By their physical header location: Pins 1 to 26 (A/B) or Pins 1 to 40 (A+/B+)
+* Using the Broadcom hardware map: GPIO 0-25 (B rev1), GPIO 2-27 (A/B rev2, A+/B+)
+
+However, confusingly the Broadcom GPIO map changes between revisions, so for
+example pin 3 maps to GPIO 0 on Model B Revision 1 models, but maps to GPIO 2
+on all later models.
+
+This means the only sane default mapping is the physical layout, so that the
+same code will work on all models regardless of the underlying GPIO mapping.
+
+If you prefer to use the Broadcom GPIO scheme for whatever reason, you can use
+`.setLayout()` to switch:
 
 ```js
-rpio.setMode('physical');  /* Use the physical P1-P26/P40 layout */
-rpio.setMode('gpio');      /* The default GPIOxx numbering system */
+rpio.setLayout('physical');     /* Use the default, physical P1 - P26/P40 */
+rpio.setLayout('gpio');         /* Use the Broadcom GPIO numbering */
 ```
 
-Before reading from / writing to a pin you need to configure it as read-only or
-read-write.
+Before reading from or writing to a pin you need to configure it as read-only
+or read-write.
 
 ```js
-rpio.setInput(17);         /* Configure GPIO17/Pin11 as read-only */
-rpio.setOutput(18);        /* Configure GPIO18/Pin12 as read-write */
+rpio.setInput(11);         /* Configure pin 11 as read-only */
+rpio.setOutput(12);        /* Configure pin 12 as read-write */
 
 /* Alternatively use the general purpose setFunction() */
-rpio.setFunction(17, rpio.INPUT);
-rpio.setFunction(18, rpio.OUTPUT);
+rpio.setFunction(11, rpio.INPUT);
+rpio.setFunction(12, rpio.OUTPUT);
 ```
 
 Now you can read or write values with `.read()` and `.write()`.  The two
@@ -73,14 +82,14 @@ Now you can read or write values with `.read()` and `.write()`.  The two
 numbers.
 
 ```js
-/* Read value of GPIO17/Pin11 */
-console.log('GPIO17/Pin11 is set to ' + rpio.read(17));
+/* Read value of pin 11 */
+console.log('Pin 11 is set to ' + rpio.read(11));
 
-/* Set GPIO18/Pin12 high (i.e. write '1' to it) */
-rpio.write(18, rpio.HIGH);
+/* Set pin 12 high (i.e. write '1' to it) */
+rpio.write(12, rpio.HIGH);
 
-/* Set GPIO18/Pin12 low (i.e. write '0' to it) */
-rpio.write(18, rpio.LOW);
+/* Set pin 12 low (i.e. write '0' to it) */
+rpio.write(12, rpio.LOW);
 ```
 
 #### GPIO Demo
@@ -90,10 +99,6 @@ The code below continuously flashes an LED connected to pin 11 at 100Hz.
 ```js
 var rpio = require('rpio');
 
-/* Use physical layout for this example */
-rpio.setMode('physical');
-
-/* GPIO17/Pin11 as we're in physical mode */
 rpio.setOutput(11);
 
 /* Set the pin high every 10ms, and low 5ms after each transition to high */
@@ -219,14 +224,15 @@ Pulse Width Modulation (PWM) allows you to create analog output from the
 digital pins.  This can be used, for example, to make an LED appear to pulse
 rather than be fully off or on.
 
-On the 26-pin variants of the Raspberry Pi only GPIO18/Pin12 is available to be
-configured for PWM.  On the 40-pin variants, you can use GPIO12/Pin32,
-GPIO13/Pin33, GPIO18/Pin12, or GPIO19/Pin35.
+Only certain pins support PWM:
+
+* 26-pin models: pin 12
+* 40-pin models: pins 12, 19, 33, 35
 
 To enable a PIN for PWM, use the `rpio.PWM` argument to `setFunction()`:
 
 ```js
-rpio.setFunction(18, rpio.PWM); /* GPIO18/Pin12
+rpio.setFunction(12, rpio.PWM); /* Use pin 12 */
 ```
 
 Set the PWM refresh rate with `pwmSetClockDivider()`.  This is a power-of-two
@@ -240,13 +246,13 @@ Set the PWM range for a pin with `pwmSetRange()`.  This determines the maximum
 pulse width.
 
 ```js
-rpio.pwmSetRange(18, 1024);
+rpio.pwmSetRange(12, 1024);
 ```
 
 Finally, set the PWM width for a pin with `pwmSetData()`.
 
 ```js
-rpio.pwmSetData(18, 512);
+rpio.pwmSetData(12, 512);
 ```
 
 #### PWM Demo
@@ -256,7 +262,7 @@ The code below pulses an LED 5 times before exiting.
 ```js
 var rpio = require('rpio');
 
-var pin = 18;           /* GPIO18/P12 */
+var pin = 12;           /* P12/GPIO18 */
 var range = 1024;       /* LEDs can quickly hit max brightness, so only use */
 var max = 128;          /*   the bottom 8th of a larger scale */
 var clockdiv = 8;       /* Clock divider (PWM refresh rate), 8 == 2.4MHz */
@@ -293,9 +299,17 @@ var pulse = setInterval(function() {
 
 ### SPI
 
-SPI switches pins GPIO7-GPIO11 to a special mode where you can bulk transfer
-data at high speeds to and from SPI devices, with the controller handling the
-chip enable, clock and data in/out functions.
+SPI switches pins 19, 21, 23, 24 and 25 (GPIO7-GPIO11) to a special mode where
+you can bulk transfer data at high speeds to and from SPI devices, with the
+controller handling the chip enable, clock and data in/out functions.
+
+| Pin | Function |
+|----:|---------:|
+|  19 |     MOSI |
+|  21 |     MISO |
+|  23 |     SCLK |
+|  24 |      CE0 |
+|  25 |      CE1 |
 
 Once SPI is enabled, the SPI pins are unavailable for GPIO use until `spiEnd()`
 is called.
@@ -309,9 +323,9 @@ Choose which of the chip select / chip enable pins to control:
 ```js
 /*
  *  Value | Pin
- *  ------|----
- *    0   | SPI_CE0 (GPIO8)
- *    1   | SPI_CE1 (GPIO7)
+ *  ------|---------------------
+ *    0   | SPI_CE0 (24 / GPIO8)
+ *    1   | SPI_CE1 (25 / GPIO7)
  *    2   | Both
  */
 rpio.spiChipSelect(0);
