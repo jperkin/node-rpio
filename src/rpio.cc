@@ -261,10 +261,22 @@ NAN_METHOD(rpio_close)
 	bcm2835_close();
 }
 
+/*
+ * Misc functions useful for simplicity
+ */
+NAN_METHOD(rpio_usleep)
+{
+	if ((info.Length() != 1) || (!info[0]->IsNumber()))
+		return ThrowTypeError("Incorrect arguments");
+
+	bcm2835_delayMicroseconds(info[0]->NumberValue());
+}
+
 NAN_MODULE_INIT(setup)
 {
 	NAN_EXPORT(target, rpio_init);
 	NAN_EXPORT(target, rpio_close);
+	NAN_EXPORT(target, rpio_usleep);
 	NAN_EXPORT(target, gpio_function);
 	NAN_EXPORT(target, gpio_read);
 	NAN_EXPORT(target, gpio_write);

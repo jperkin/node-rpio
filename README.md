@@ -20,10 +20,21 @@ console.log('Pin 11 is set to ' + rpio.read(11));
 
 /*
  * Setup pin 12 / GPIO18 for read-write and set its initial state to
- * high.  The state is set prior to the pin being activated, so is safe
+ * low.  The state is set prior to the pin being activated, so is safe
  * for devices which must avoid floating, even if only for milliseconds.
  */
-rpio.setOutput(12, rpio.HIGH);
+rpio.setOutput(12, rpio.LOW);
+
+/*
+ * Blink LED on pin 12 a few times.  The sleep functions block, but most times
+ * in these programs you don't care about that, preferring the simpler code.
+ */
+for (var i = 0; i < 5; i++) {
+	rpio.write(12, rpio.HIGH);
+	rpio.sleep(1);
+	rpio.write(12, rpio.LOW);
+	rpio.sleep(1);
+}
 ```
 
 ## Why use rpio?
@@ -451,6 +462,17 @@ for (i = 0; i < 128; i++, ++j) {
         process.stdout.write(out.toString(16) + ((j % 16 == 0) ? "\n" : " "));
 }
 rpio.spiEnd();
+```
+
+### Misc
+
+To make code simpler a few sleep functions are supported, using the hardware
+directly so should be reasonably accurate.
+
+```js
+rpio.sleep(n);          /* Sleep for n seconds */
+rpio.msleep(n);         /* Sleep for n milliseconds */
+rpio.usleep(n);         /* Sleep for n microseconds */
 ```
 
 ## Authors And Licenses
