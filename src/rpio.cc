@@ -55,6 +55,16 @@ NAN_METHOD(gpio_write)
 	bcm2835_gpio_write(info[0]->NumberValue(), info[1]->NumberValue());
 }
 
+NAN_METHOD(gpio_pud)
+{
+	if ((info.Length() != 2) ||
+	    !info[0]->IsNumber() ||
+	    !info[1]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	bcm2835_gpio_set_pud(info[0]->NumberValue(), info[1]->NumberValue());
+}
+
 /*
  * i2c setup
  */
@@ -280,6 +290,7 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, gpio_function);
 	NAN_EXPORT(target, gpio_read);
 	NAN_EXPORT(target, gpio_write);
+	NAN_EXPORT(target, gpio_pud);
 	NAN_EXPORT(target, i2c_begin);
 	NAN_EXPORT(target, i2c_set_clock_divider);
 	NAN_EXPORT(target, i2c_set_baudrate);
