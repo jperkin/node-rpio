@@ -9,32 +9,62 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
 ## Quickstart
 
+All these examples use the physical numbering (Px) and assume that the module
+is loaded with:
+
 ```js
 var rpio = require('rpio');
+```
 
+Setup pin P11 / GPIO17 for read-only input and print its current value:
+
+```js
+rpio.open(11, rpio.INPUT);
+console.log('Pin 11 is currently set ' + (rpio.read(11) ? 'high' : 'low'));
+```
+
+Blink an LED attached to P12 / GPIO18 a few times:
+
+```js
 /*
- * Setup pin 11 / GPIO17 for read-only and read its value.
+ * Set the initial state to low.  The state is set prior to the pin becoming
+ * active, so is safe for devices which require a stable setup.
  */
-rpio.setInput(11);
-console.log('Pin 11 is set to ' + rpio.read(11));
+rpio.open(12, rpio.OUTPUT, rpio.LOW);
 
 /*
- * Setup pin 12 / GPIO18 for read-write and set its initial state to
- * low.  The state is set prior to the pin being activated, so is safe
- * for devices which must avoid floating, even if only for milliseconds.
- */
-rpio.setOutput(12, rpio.LOW);
-
-/*
- * Blink LED on pin 12 a few times.  The sleep functions block, but most times
- * in these programs you don't care about that, preferring the simpler code.
+ * The sleep functions block, but rarely in these simple programs do you care
+ * about that.  Use a setInterval()/setTimeout() loop instead if it matters.
  */
 for (var i = 0; i < 5; i++) {
+	/* On for 1 second */
         rpio.write(12, rpio.HIGH);
         rpio.sleep(1);
+
+	/* Off for half a second (500ms) */
         rpio.write(12, rpio.LOW);
-        rpio.sleep(1);
+        rpio.msleep(500);
 }
+```
+
+Configure the internal pulldown resistor on P15 / GPIO22 and watch the pin for
+state changes from an attached button:
+
+```js
+rpio.open(15, rpio.INPUT, rpio.PULL_DOWN);
+
+function pollcb(pin)
+{
+        /*
+         * Interrupts aren't supported by the underlying hardware, so events
+         * may be missed during the 1ms poll window.  The best we can do is to
+         * print the current state after a event is detected.
+         */
+        var state = rpio.read(pin) ? 'pressed' : 'released';
+        console.log('Button event on P%d (button is currently %s)', pin, state);
+}
+
+rpio.poll(15, pollcb);
 ```
 
 ## Why use rpio?
@@ -81,16 +111,16 @@ Requiring the addon initializes the bcm2835 library ready to accept commands.
 var rpio = require('rpio');
 ```
 
-### GPIO
+### Pin numbering.
 
 There are two naming schemes when referring to GPIO pins:
 
 * By their physical header location: Pins 1 to 26 (A/B) or Pins 1 to 40 (A+/B+)
 * Using the Broadcom hardware map: GPIO 0-25 (B rev1), GPIO 2-27 (A/B rev2, A+/B+)
 
-However, confusingly the Broadcom GPIO map changes between revisions, so for
-example pin 3 maps to GPIO 0 on Model B Revision 1 models, but maps to GPIO 2
-on all later models.
+Confusingly however, the Broadcom GPIO map changes between revisions, so for
+example P3 maps to GPIO0 on Model B Revision 1 models, but maps to GPIO2 on all
+later models.
 
 This means the only sane default mapping is the physical layout, so that the
 same code will work on all models regardless of the underlying GPIO mapping.
@@ -100,35 +130,79 @@ If you prefer to use the Broadcom GPIO scheme for whatever reason, you can use
 
 ```js
 rpio.setLayout('physical');     /* Use the default, physical P1 - P26/P40 */
-rpio.setLayout('gpio');         /* Use the Broadcom GPIO numbering */
+rpio.setLayout('gpio');         /* Use the Broadcom GPIOn numbering */
 ```
 
-Before reading from or writing to a pin you need to configure it as read-only
-or read-write.
+### GPIO
 
-```js
-rpio.setInput(11);         /* Configure pin 11 as read-only */
-rpio.setOutput(12);        /* Configure pin 12 as read-write */
+General purpose I/O tries to follow a standard open/read/write/close model.
+For all functions there are two constants provided:
 
-/* Alternatively use the general purpose setFunction() */
-rpio.setFunction(11, rpio.INPUT);
-rpio.setFunction(12, rpio.OUTPUT);
-```
+* `rpio.HIGH` - pin high/1/on
+* `rpio.LOW` - pin low/0/off
 
-Now you can read or write values with `.read()` and `.write()`.  The two
-`rpio.LOW` and `rpio.HIGH` constants are provided if you prefer to avoid magic
-numbers.
+These can be useful to avoid magic numbers in your code.
 
-```js
-/* Read value of pin 11 */
-console.log('Pin 11 is set to ' + rpio.read(11));
+#### `rpio.open(pin, mode[, option])`
 
-/* Set pin 12 high (i.e. write '1' to it) */
-rpio.write(12, rpio.HIGH);
+Open a pin for input or output.  Valid modes are:
 
-/* Set pin 12 low (i.e. write '0' to it) */
-rpio.write(12, rpio.LOW);
-```
+* `rpio.INPUT` - pin is input (read-only).
+* `rpio.OUTPUT` - pin is output (read-write).
+* `rpio.PWM` - configure pin for hardware PWM (see PWM section below).
+
+For input pins, `option` can be used to configure the internal pullup or
+pulldown resistors using options as described in the `.pud()` documentation
+below.
+
+For output pins, `option` defines the initial state of the pin, rather than
+having to issue a separate `.write()` call.  This can be critical for devices
+which must have a stable value, rather than relying on the initial floating
+value when a pin is enabled for output but hasn't yet been configured with a
+value.
+
+#### `rpio.read(pin)`
+
+Return the current value of the specified pin, either `1` (high) or `0` (low).
+
+#### `rpio.write(pin, value)`
+
+Set the specified pin either high or low, using either the
+`rpio.HIGH`/`rpio.LOW` constants, or simply `1` or `0`.
+
+#### `rpio.pud(pin, state)`
+
+Configure the pin's internal pullup or pulldown resistors, using the following
+`state` constants:
+
+* `rpio.PULL_OFF` - disable configured resistors.
+* `rpio.PULL_DOWN` - enable the pulldown resistor.
+* `rpio.PULL_UP` - enable the pullup resistor.
+
+#### `rpio.poll(pin, cb[, direction])`
+
+Watch `pin` for changes and execute the callback `cb()` on events.  `cb()`
+takes a single argument, the pin which triggered the callback.
+
+The optional `direction` argument can be used to watch for specific events:
+
+* `rpio.POLL_LOW` - poll for falling edge transitions to low.
+* `rpio.POLL_HIGH` - poll for rising edge transitions to high.
+* `rpio.POLL_BOTH` - poll for both transitions (the default).
+
+Due to hardware/kernel limitations we can only poll for changes, and the event
+detection only says that an event occurred, not which one.  The poll interval
+is a 1ms `setInterval()` and transitions could come in between detecting the
+event and reading the value.  Therefore this interface is only useful for
+events which transition slower than approximately 1kHz.
+
+To stop watching for `pin` changes, call `.poll()` again, setting the callback
+to `null` (or anything else which isn't a function).
+
+#### `rpio.close(pin)`
+
+Reset `pin` to `rpio.INPUT` and clear any pullup/pulldown resistors and poll
+events.
 
 #### GPIO demo
 
@@ -137,7 +211,7 @@ The code below continuously flashes an LED connected to pin 11 at 100Hz.
 ```js
 var rpio = require('rpio');
 
-rpio.setOutput(11);
+rpio.open(11, rpio.OUTPUT, rpio.LOW);
 
 /* Set the pin high every 10ms, and low 5ms after each transition to high */
 setInterval(function() {
@@ -271,10 +345,10 @@ hardware PWM:
 * 26-pin models: pin 12
 * 40-pin models: pins 12, 19, 33, 35
 
-To enable a PIN for PWM, use the `rpio.PWM` argument to `setFunction()`:
+To enable a PIN for PWM, use the `rpio.PWM` argument to `open()`:
 
 ```js
-rpio.setFunction(12, rpio.PWM); /* Use pin 12 */
+rpio.open(12, rpio.PWM); /* Use pin 12 */
 ```
 
 Set the PWM refresh rate with `pwmSetClockDivider()`.  This is a power-of-two
@@ -314,7 +388,7 @@ var times = 5;          /* How many times to pulse before exiting */
 /*
  * Enable PWM on the chosen pin and set the clock and range.
  */
-rpio.setFunction(pin, rpio.PWM);
+rpio.open(pin, rpio.PWM);
 rpio.pwmSetClockDivider(clockdiv);
 rpio.pwmSetRange(pin, range);
 
@@ -329,7 +403,7 @@ var pulse = setInterval(function() {
                 direction = 1;
                 if (times-- === 0) {
                         clearInterval(pulse);
-                        rpio.setFunction(pin, rpio.INPUT);
+                        rpio.open(pin, rpio.INPUT);
                         return;
                 }
         } else if (data === max) {
