@@ -267,6 +267,13 @@ uint8_t bcm2835_gpio_eds(uint8_t pin)
     return (value & (1 << shift)) ? HIGH : LOW;
 }
 
+uint32_t bcm2835_gpio_eds_multi(uint32_t mask)
+{
+    volatile uint32_t* paddr = bcm2835_gpio + BCM2835_GPEDS0/4;
+    uint32_t value = bcm2835_peri_read(paddr);
+    return (value & mask);
+}
+
 /* Write a 1 to clear the bit in EDS */
 void bcm2835_gpio_set_eds(uint8_t pin)
 {
@@ -274,6 +281,12 @@ void bcm2835_gpio_set_eds(uint8_t pin)
     uint8_t shift = pin % 32;
     uint32_t value = 1 << shift;
     bcm2835_peri_write(paddr, value);
+}
+
+void bcm2835_gpio_set_eds_multi(uint32_t mask)
+{
+    volatile uint32_t* paddr = bcm2835_gpio + BCM2835_GPEDS0/4;
+    bcm2835_peri_write(paddr, mask);
 }
 
 /* Rising edge detect enable */

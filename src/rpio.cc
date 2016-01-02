@@ -18,6 +18,9 @@
 #include <unistd.h>	/* geteuid() */
 #include "bcm2835.h"
 
+#define RPIO_EVENT_LOW	0x1
+#define RPIO_EVENT_HIGH	0x2
+
 using namespace Nan;
 
 /*
@@ -63,6 +66,59 @@ NAN_METHOD(gpio_pud)
 		return ThrowTypeError("Incorrect arguments");
 
 	bcm2835_gpio_set_pud(info[0]->NumberValue(), info[1]->NumberValue());
+}
+
+NAN_METHOD(gpio_event_set)
+{
+	if ((info.Length() != 2) ||
+	    !info[0]->IsNumber() ||
+	    !info[1]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	/* Clear all possible trigger events. */
+	bcm2835_gpio_clr_ren(info[0]->NumberValue());
+	bcm2835_gpio_clr_fen(info[0]->NumberValue());
+	bcm2835_gpio_clr_hen(info[0]->NumberValue());
+	bcm2835_gpio_clr_len(info[0]->NumberValue());
+	bcm2835_gpio_clr_aren(info[0]->NumberValue());
+	bcm2835_gpio_clr_afen(info[0]->NumberValue());
+
+	/*
+	 * Add the requested events, using the synchronous rising and
+	 * falling edge detection bits.
+	 */
+	if ((uint32_t)info[1]->NumberValue() & RPIO_EVENT_HIGH)
+		bcm2835_gpio_ren(info[0]->NumberValue());
+
+	if ((uint32_t)info[1]->NumberValue() & RPIO_EVENT_LOW)
+		bcm2835_gpio_fen(info[0]->NumberValue());
+}
+
+NAN_METHOD(gpio_event_poll)
+{
+	uint32_t rval = 0;
+
+	if ((info.Length() != 1) || !info[0]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	/*
+	 * Interrupts are not supported, so this merely reports that an event
+	 * happened in the time period since the last poll.  There is no way to
+	 * know which trigger caused the event.
+	 */
+	if ((rval = bcm2835_gpio_eds_multi(info[0]->NumberValue())))
+		bcm2835_gpio_set_eds_multi(rval);
+
+	info.GetReturnValue().Set(rval);
+}
+
+NAN_METHOD(gpio_event_clear)
+{
+	if ((info.Length() != 1) || !info[0]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	bcm2835_gpio_clr_fen(info[0]->NumberValue());
+	bcm2835_gpio_clr_ren(info[0]->NumberValue());
 }
 
 /*
@@ -291,6 +347,9 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, gpio_read);
 	NAN_EXPORT(target, gpio_write);
 	NAN_EXPORT(target, gpio_pud);
+	NAN_EXPORT(target, gpio_event_set);
+	NAN_EXPORT(target, gpio_event_poll);
+	NAN_EXPORT(target, gpio_event_clear);
 	NAN_EXPORT(target, i2c_begin);
 	NAN_EXPORT(target, i2c_set_clock_divider);
 	NAN_EXPORT(target, i2c_set_baudrate);

@@ -1167,12 +1167,25 @@ extern "C" {
     */
     extern uint8_t bcm2835_gpio_eds(uint8_t pin);
 
+    /*! Same as bcm2835_gpio_eds() but checks if any of the pins specified in
+      the mask have detected a level or edge.
+      \param[in] mask Mask of pins to check. Use eg: (1 << RPI_GPIO_P1_03) | (1 << RPI_GPIO_P1_05)
+      \return Mask of pins HIGH if the event detect status for the given pin is true.
+    */
+    extern uint32_t bcm2835_gpio_eds_multi(uint32_t mask);
+
     /*! Sets the Event Detect Status register for a given pin to 1, 
       which has the effect of clearing the flag. Use this afer seeing
       an Event Detect Status on the pin.
       \param[in] pin GPIO number, or one of RPI_GPIO_P1_* from \ref RPiGPIOPin.
     */
     extern void bcm2835_gpio_set_eds(uint8_t pin);
+
+    /*! Same as bcm2835_gpio_set_eds() but clears the flag for any pin which
+      is set in the mask.
+      \param[in] mask Mask of pins to clear. Use eg: (1 << RPI_GPIO_P1_03) | (1 << RPI_GPIO_P1_05)
+     */
+    extern void bcm2835_gpio_set_eds_multi(uint32_t mask);
 
     /*! Enable Rising Edge Detect Enable for the specified pin.
       When a rising edge is detected, sets the appropriate pin in Event Detect Status.
