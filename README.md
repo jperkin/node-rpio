@@ -161,6 +161,12 @@ which must have a stable value, rather than relying on the initial floating
 value when a pin is enabled for output but hasn't yet been configured with a
 value.
 
+#### `rpio.mode(pin, mode)`
+
+Switch a pin that has already been opened in one mode to a different mode.
+This is provided primarily for performance reasons, as it avoids some of the
+setup work done by `.open()`.
+
 #### `rpio.read(pin)`
 
 Return the current value of the specified pin, either `1` (high) or `0` (low).
