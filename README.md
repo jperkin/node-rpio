@@ -37,11 +37,11 @@ rpio.open(12, rpio.OUTPUT, rpio.LOW);
  * about that.  Use a setInterval()/setTimeout() loop instead if it matters.
  */
 for (var i = 0; i < 5; i++) {
-	/* On for 1 second */
+        /* On for 1 second */
         rpio.write(12, rpio.HIGH);
         rpio.sleep(1);
 
-	/* Off for half a second (500ms) */
+        /* Off for half a second (500ms) */
         rpio.write(12, rpio.LOW);
         rpio.msleep(500);
 }
