@@ -48,6 +48,23 @@ NAN_METHOD(gpio_read)
 	info.GetReturnValue().Set(bcm2835_gpio_lev(info[0]->NumberValue()));
 }
 
+NAN_METHOD(gpio_readn)
+{
+	uint32_t i;
+	char *buf;
+
+	if ((info.Length() != 3) ||
+	    !info[0]->IsNumber() ||
+	    !info[1]->IsObject() ||
+	    !info[2]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	buf = node::Buffer::Data(info[1]->ToObject());
+
+	for (i = 0; i < info[2]->NumberValue(); i++)
+		buf[i] = bcm2835_gpio_lev(info[0]->NumberValue());
+}
+
 NAN_METHOD(gpio_write)
 {
 	if ((info.Length() != 2) ||
@@ -345,6 +362,7 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, rpio_usleep);
 	NAN_EXPORT(target, gpio_function);
 	NAN_EXPORT(target, gpio_read);
+	NAN_EXPORT(target, gpio_readn);
 	NAN_EXPORT(target, gpio_write);
 	NAN_EXPORT(target, gpio_pud);
 	NAN_EXPORT(target, gpio_event_set);

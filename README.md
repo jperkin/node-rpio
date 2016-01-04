@@ -169,7 +169,19 @@ setup work done by `.open()`.
 
 #### `rpio.read(pin)`
 
-Return the current value of the specified pin, either `1` (high) or `0` (low).
+Read the current value of `pin`, returning either `1` (high) or `0` (low).
+
+#### `rpio.readn(pin, buffer[, length])`
+
+Read `length` bits from `pin` into `buffer` as fast as possible.  If `length`
+isn't specified it defaults to `buffer.length`.
+
+This is useful for devices which send out information faster than the
+JavaScript function call overhead can handle, e.g. if you need microsecond
+accuracy.  See
+[dht11.js](https://github.com/jperkin/node-rpio/blob/master/examples/dht11.js)
+for an example which uses this to pull data from a DHT11 temperature/humidity
+sensor.
 
 #### `rpio.write(pin, value)`
 
