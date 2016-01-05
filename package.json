@@ -1,7 +1,7 @@
 {
   "name": "rpio",
   "version": "0.7.0",
-  "description": "High Performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
+  "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
   "main": "./lib/rpio.js",
   "scripts": {
     "test": "true",
