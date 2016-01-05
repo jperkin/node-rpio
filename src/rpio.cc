@@ -352,7 +352,7 @@ NAN_METHOD(rpio_usleep)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_delayMicroseconds(info[0]->NumberValue());
+	usleep(info[0]->NumberValue());
 }
 
 NAN_MODULE_INIT(setup)
