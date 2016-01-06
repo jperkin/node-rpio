@@ -30,7 +30,7 @@ and you may need to configure udev with the following rule (as root):
 
 ```bash
 # cat >/etc/udev/rules.d/20-gpiomem.rules <<EOF
-echo 'SUBSYSTEM=="bcm2835-gpiomem", KERNEL=="gpiomem", GROUP="gpio", MODE="0660"
+SUBSYSTEM=="bcm2835-gpiomem", KERNEL=="gpiomem", GROUP="gpio", MODE="0660"
 EOF
 ```
 
