@@ -348,6 +348,7 @@ function cb(pin)
         console.log('Pin %d changed, is now %d', pin, rpio.read(pin));
 }
 rpio.poll(11, cb);
+```
 
 #### `rpio.close(pin)`
 
