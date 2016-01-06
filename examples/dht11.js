@@ -1,5 +1,9 @@
 var rpio = require('../lib/rpio');
 
+/*
+ * Read a DHT11 attached to P07 / GPIO4 and print out the current temperature
+ * and relative humidity if the read was successful.
+ */
 var pin = 7;
 
 var data = new Array(40);
@@ -55,9 +59,11 @@ var chksum = parseInt(data.slice(32, 40).join(''), 2);
 /* chksum should match this calculation */
 var chk = ((rh_int + rh_dec + tm_int + tm_dec) & 0xFF);
 
-if (chksum == chk) {
+/* Sometimes the checksum will be correct but the values obviously wrong. */
+if (chksum == chk && rh_int <= 100) {
 	console.log("Temperature = %dC, Humidity = %d%%", tm_int, rh_int);
 } else {
-	console.log("chk = %d, chksum = %d", chk, chksum);
-	console.log("%d %d %d %d (%d = %d)", rh_int, rh_dec, tm_int, tm_dec, chk, chksum);
+	console.log("Read failed:");
+	console.log("    chk = %d, chksum = %d", chk, chksum);
+	console.log("    %d %d %d %d (%d = %d)", rh_int, rh_dec, tm_int, tm_dec, chk, chksum);
 }
