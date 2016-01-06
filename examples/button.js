@@ -20,7 +20,7 @@ rpio.open(pin, rpio.INPUT, rpio.PULL_DOWN);
  * the pin.  The argument is the pin that triggered the event, so you can use
  * the same callback for multiple pins.
  */
-function pollcb(pin)
+function pollcb(cbpin)
 {
 	/*
 	 * It cannot be guaranteed that the current value of the pin is the
@@ -32,14 +32,14 @@ function pollcb(pin)
 	 * setInterval() loop which polls for events) this shouldn't be a
 	 * problem.
 	 */
-	var state = rpio.read(pin) ? 'pressed' : 'released';
-	console.log('Button event on P%d (button currently %s)', pin, state);
+	var state = rpio.read(cbpin) ? 'pressed' : 'released';
+	console.log('Button event on P%d (button currently %s)', cbpin, state);
 
 	/*
 	 * By default this program will run forever.  If you want to cancel the
 	 * poll after the first event and end the program, uncomment this line.
 	 */
-	// rpio.poll(pin, null);
+	// rpio.poll(cbpin, null);
 }
 
 /*
