@@ -148,8 +148,8 @@ General purpose I/O tries to follow a standard open/read/write/close model.
 
 Some useful constants are provided for use by all supporting functions:
 
-* `rpio.HIGH` - pin high/1/on
-* `rpio.LOW` - pin low/0/off
+* `rpio.HIGH`: pin high/1/on
+* `rpio.LOW`: pin low/0/off
 
 These can be useful to avoid magic numbers in your code.
 
@@ -224,9 +224,9 @@ rpio.init({mapping: 'gpio'});   /* Use the GPIOxx numbering */
 
 Open a pin for input or output.  Valid modes are:
 
-* `rpio.INPUT` - pin is input (read-only).
-* `rpio.OUTPUT` - pin is output (read-write).
-* `rpio.PWM` - configure pin for hardware PWM (see PWM section below).
+* `rpio.INPUT`: pin is input (read-only).
+* `rpio.OUTPUT`: pin is output (read-write).
+* `rpio.PWM`: configure pin for hardware PWM (see PWM section below).
 
 For input pins, `option` can be used to configure the internal pullup or
 pulldown resistors using options as described in the `.pud()` documentation
@@ -310,14 +310,15 @@ rpio.write(13, rpio.HIGH);
 Configure the pin's internal pullup or pulldown resistors, using the following
 `state` constants:
 
-* `rpio.PULL_OFF` - disable configured resistors.
-* `rpio.PULL_DOWN` - enable the pulldown resistor.
-* `rpio.PULL_UP` - enable the pullup resistor.
+* `rpio.PULL_OFF`: disable configured resistors.
+* `rpio.PULL_DOWN`: enable the pulldown resistor.
+* `rpio.PULL_UP`: enable the pullup resistor.
 
-Example:
+Examples:
 
 ```js
 rpio.pud(11, rpio.PULL_UP);
+rpio.pud(12, rpio.PULL_DOWN);
 ```
 
 #### `rpio.poll(pin, cb[, direction])`
@@ -327,9 +328,9 @@ takes a single argument, the pin which triggered the callback.
 
 The optional `direction` argument can be used to watch for specific events:
 
-* `rpio.POLL_LOW` - poll for falling edge transitions to low.
-* `rpio.POLL_HIGH` - poll for rising edge transitions to high.
-* `rpio.POLL_BOTH` - poll for both transitions (the default).
+* `rpio.POLL_LOW`: poll for falling edge transitions to low.
+* `rpio.POLL_HIGH`: poll for rising edge transitions to high.
+* `rpio.POLL_BOTH`: poll for both transitions (the default).
 
 Due to hardware/kernel limitations we can only poll for changes, and the event
 detection only says that an event occurred, not which one.  The poll interval
@@ -343,11 +344,26 @@ to `null` (or anything else which isn't a function).
 Example:
 
 ```js
-function cb(pin)
+function nuke_button(pin)
 {
-        console.log('Pin %d changed, is now %d', pin, rpio.read(pin));
+        console.log('Nuke button on pin %d pressed', pin);
+
+        /* No need to nuke more than once. */
+        rpio.poll(pin, null);
 }
-rpio.poll(11, cb);
+
+function regular_button(pin)
+{
+        /* Watch pin 11 forever. */
+        console.log('Button event on pin %d, is now %d', pin, rpio.read(pin));
+}
+
+/*
+ * Pin 11 watches for both high and low transitions.  Pin 12 only watches for
+ * high transitions (e.g. the nuke button is pushed).
+ */
+rpio.poll(11, regular_button);
+rpio.poll(12, nuke_button, rpio.POLL_HIGH);
 ```
 
 #### `rpio.close(pin)`
