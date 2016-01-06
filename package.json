@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "0.8.5",
+  "version": "0.8.6",
   "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
   "main": "./lib/rpio.js",
   "scripts": {
@@ -18,7 +18,9 @@
   "keywords": [
     "bcm2835",
     "gpio",
+    "gpiomem",
     "i2c",
+    "mmap",
     "pi",
     "pwm",
     "raspberry",
