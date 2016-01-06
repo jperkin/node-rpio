@@ -12,11 +12,31 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 * Raspberry Pi Models: A, B, A+, B+, 2.
 * Node.js Versions: 0.8, 0.10, 0.12, 4.x, 5.x
 
-Not all of the examples will currently work with the versions of node prior to
-0.12, but can probably be made to work with a little effort.
-
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
-support.
+support.  If you see compilation problems related to C++11, this is the likely
+cause.
+
+## Install
+
+Easily install the latest via npm:
+
+```bash
+$ npm install rpio
+```
+
+By default the module will use `/dev/gpiomem` when using simple GPIO access.
+To access this device, your user will need to be a member of the `gpio` group,
+and you may need to configure udev with the following rule (as root):
+
+```bash
+# cat >/etc/udev/rules.d/20-gpiomem.rules <<EOF
+echo 'SUBSYSTEM=="bcm2835-gpiomem", KERNEL=="gpiomem", GROUP="gpio", MODE="0660"
+EOF
+```
+
+For access to i²c, PWM, and SPI, or if you are running an older kernel which
+does not have the `bcm2835-gpiomem` module, you will need to run your programs
+as root for access to `/dev/mem`.
 
 ## Quickstart
 
@@ -136,14 +156,6 @@ being able to support time-sensitive devices.
 
 The aim is to provide an interface familiar to Unix programmers, with the
 performance to match.
-
-## Install
-
-Easily install the latest via npm:
-
-```bash
-$ npm install rpio
-```
 
 ## API
 
