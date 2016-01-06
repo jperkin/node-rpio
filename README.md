@@ -93,8 +93,10 @@ How much faster?  Here is a [simple
 test](https://gist.github.com/jperkin/e1f0ce996c83ccf2bca9) which calculates
 how long it takes to switch a pin on and off 1 million times:
 
-* rpi-gpio (using `/sys`): 701.023 seconds
-* rpio (using `/dev/*mem`): 2.907 seconds
+* rpi-gpio (using `/sys`): `701.023` seconds
+* rpio (using `/dev/*mem`): `2.907` seconds
+
+So rpio can be anywhere up to **250x faster** than the alternatives.
 
 ### Hardware support
 
