@@ -82,7 +82,18 @@ NAN_METHOD(gpio_pud)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_set_pud(info[0]->NumberValue(), info[1]->NumberValue());
+	/*
+	 * We use our own version of bcm2835_gpio_set_pud as that uses
+	 * delayMicroseconds() which requires access to the timers and
+	 * therefore /dev/mem and root.  Our version is identical, except for
+	 * using usleep() instead.
+	 */
+	bcm2835_gpio_pud(info[1]->NumberValue());
+	usleep(10);
+	bcm2835_gpio_pudclk(info[0]->NumberValue(), 1);
+	usleep(10);
+	bcm2835_gpio_pud(BCM2835_GPIO_PUD_OFF);
+	bcm2835_gpio_pudclk(info[0]->NumberValue(), 0);
 }
 
 NAN_METHOD(gpio_event_set)
