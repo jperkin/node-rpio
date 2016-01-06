@@ -1005,7 +1005,7 @@ extern "C" {
       Prints messages to stderr in case of errors.
       \return 1 if successful else 0
     */
-    extern int bcm2835_init(void);
+    extern int bcm2835_init(int);
 
     /*! Close the library, deallocating any allocated memory and closing /dev/mem
       \return 1 if successful else 0

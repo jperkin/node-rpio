@@ -1263,7 +1263,7 @@ static void unmapmem(void **pmem, size_t size)
 }
 
 /* Initialise this library. */
-int bcm2835_init(void)
+int bcm2835_init(int gpiomem)
 {
     int  memfd;
     int  ok;
@@ -1304,11 +1304,21 @@ int bcm2835_init(void)
     memfd = -1;
     ok = 0;
     /* Open the master /dev/memory device */
-    if ((memfd = open("/dev/mem", O_RDWR | O_SYNC) ) < 0) 
+    if (gpiomem)
     {
-	fprintf(stderr, "bcm2835_init: Unable to open /dev/mem: %s\n",
-		strerror(errno)) ;
-	goto exit;
+	bcm2835_peripherals_base = 0;
+	if ((memfd = open("/dev/gpiomem", O_RDWR | O_SYNC) ) < 0) {
+	  fprintf(stderr, "bcm2835_init: Unable to open /dev/gpiomem: %s\n", strerror(errno));
+	  goto exit;
+	}
+    }
+    else
+    {
+	if ((memfd = open("/dev/mem", O_RDWR | O_SYNC) ) < 0)
+	{
+	  fprintf(stderr, "bcm2835_init: Unable to open /dev/mem: %s\n", strerror(errno));
+	  goto exit;
+	}
     }
 	
     /* Base of the peripherals block is mapped to VM */
@@ -1319,14 +1329,21 @@ int bcm2835_init(void)
     // which are at fixed offsets within the mapped peripherals block
     // Caution: bcm2835_peripherals is uint32_t*, so divide offsets by 4
     */
-    bcm2835_gpio = bcm2835_peripherals + BCM2835_GPIO_BASE/4;
-    bcm2835_pwm  = bcm2835_peripherals + BCM2835_GPIO_PWM/4;
-    bcm2835_clk  = bcm2835_peripherals + BCM2835_CLOCK_BASE/4;
-    bcm2835_pads = bcm2835_peripherals + BCM2835_GPIO_PADS/4;
-    bcm2835_spi0 = bcm2835_peripherals + BCM2835_SPI0_BASE/4;
-    bcm2835_bsc0 = bcm2835_peripherals + BCM2835_BSC0_BASE/4; /* I2C */
-    bcm2835_bsc1 = bcm2835_peripherals + BCM2835_BSC1_BASE/4; /* I2C */
-    bcm2835_st   = bcm2835_peripherals + BCM2835_ST_BASE/4;
+    if (gpiomem)
+    {
+	bcm2835_gpio = bcm2835_peripherals;
+    }
+    else
+    {
+	bcm2835_gpio = bcm2835_peripherals + BCM2835_GPIO_BASE/4;
+	bcm2835_pwm  = bcm2835_peripherals + BCM2835_GPIO_PWM/4;
+	bcm2835_clk  = bcm2835_peripherals + BCM2835_CLOCK_BASE/4;
+	bcm2835_pads = bcm2835_peripherals + BCM2835_GPIO_PADS/4;
+	bcm2835_spi0 = bcm2835_peripherals + BCM2835_SPI0_BASE/4;
+	bcm2835_bsc0 = bcm2835_peripherals + BCM2835_BSC0_BASE/4; /* I2C */
+	bcm2835_bsc1 = bcm2835_peripherals + BCM2835_BSC1_BASE/4; /* I2C */
+	bcm2835_st   = bcm2835_peripherals + BCM2835_ST_BASE/4;
+    }
 
     ok = 1;
 

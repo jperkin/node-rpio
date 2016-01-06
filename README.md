@@ -9,12 +9,14 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
 ## Quickstart
 
-All these examples use the physical numbering (Px) and assume that the module
-is loaded with:
+All these examples use the physical numbering (P01-P40) and assume that the
+example is started with:
 
 ```js
 var rpio = require('rpio');
 ```
+
+### Read a pin
 
 Setup pin P11 / GPIO17 for read-only input and print its current value:
 
@@ -22,6 +24,8 @@ Setup pin P11 / GPIO17 for read-only input and print its current value:
 rpio.open(11, rpio.INPUT);
 console.log('Pin 11 is currently set ' + (rpio.read(11) ? 'high' : 'low'));
 ```
+
+### Blink an LED
 
 Blink an LED attached to P12 / GPIO18 a few times:
 
@@ -33,7 +37,7 @@ Blink an LED attached to P12 / GPIO18 a few times:
 rpio.open(12, rpio.OUTPUT, rpio.LOW);
 
 /*
- * The sleep functions block, but rarely in these simple programs do you care
+ * The sleep functions block, but rarely in these simple programs does one care
  * about that.  Use a setInterval()/setTimeout() loop instead if it matters.
  */
 for (var i = 0; i < 5; i++) {
@@ -47,8 +51,10 @@ for (var i = 0; i < 5; i++) {
 }
 ```
 
+### Poll a button switch for events
+
 Configure the internal pulldown resistor on P15 / GPIO22 and watch the pin for
-state changes from an attached button:
+state changes from an attached button switch:
 
 ```js
 rpio.open(15, rpio.INPUT, rpio.PULL_DOWN);
@@ -61,39 +67,62 @@ function pollcb(pin)
          * print the current state after a event is detected.
          */
         var state = rpio.read(pin) ? 'pressed' : 'released';
-        console.log('Button event on P%d (button is currently %s)', pin, state);
+        console.log('Button event on P%d (button currently %s)', pin, state);
 }
 
 rpio.poll(15, pollcb);
 ```
 
-## Why use rpio?
+A collection of example programs are also available in the
+[examples](https://github.com/jperkin/node-rpio/tree/master/examples)
+directory.
 
-Most other GPIO modules use the `/sys` file system interface, whereas this
-addon links directly to Mike McCauley's
-[bcm2835](http://www.open.com.au/mikem/bcm2835/) library which `mmap()`s the
-underlying hardware.  This makes this module significantly faster than the
-alternatives, provides synchronous access making code a lot simpler, as well as
-supporting the additional i²c, PWM, and SPI functions which are not all
-available via the `/sys` interface.
+## Features
+
+There are lots of GPIO modules available for node.js.  Why use this one?
+
+### Performance
+
+It's very fast.  Part of the module is a native addon which links against Mike
+McCauley's [bcm2835](http://www.open.com.au/mikem/bcm2835/) library, providing
+direct access to the hardware via `/dev/mem` and `/dev/gpiomem`.
+
+Most alternative GPIO modules use the slower `/sys` file system interface.
 
 How much faster?  Here is a [simple
-test](https://gist.github.com/jperkin/e1f0ce996c83ccf2bca9):
+test](https://gist.github.com/jperkin/e1f0ce996c83ccf2bca9) which calculates
+how long it takes to switch a pin on and off 1 million times:
 
-|              Module | Turn a pin on/off 1 million times (seconds) |
-|--------------------:|--------------------------------------------:|
-|   rpi-gpio (`/sys`) |                                     701.023 |
-|     rpio (`mmap()`) |                                       2.907 |
+* rpi-gpio (using `/sys`): 701.023 seconds
+* rpio (using `/dev/*mem`): 2.907 seconds
 
-Writing to the hardware directly also means you don't need any asynchronous
-callback handling to wait for `/sys` operations to complete, greatly
-simplifying code.  You also cannot set an initial write state for a pin via
-`/sys` which may not be suitable for all devices.
+### Hardware support
 
-The one drawback is that you need to run as root for access to `/dev/mem`.  If
-this is unsuitable for your application you'll need to use one of the `/sys`
-modules where you can configure permissions to regular users via the `gpio`
-group.
+While `/sys` provides a simple interface to GPIO, not all hardware features are
+supported, and it's not always possible to handle certain types of hardware,
+especially when employing an asynchronous model.  Using the `/dev/*mem`
+interface means rpio can support a lot more functionality:
+
+* rpio supports sub-millisecond access, with features to support multiple
+  reads/writes directly with hardware rather than being delayed by the event
+  loop.
+
+* Output pins can be configured with a default state prior to being enabled,
+  required by some devices and not possible to configure via `/sys`.
+
+* Internal pullup/pulldown registers can be configured.
+
+* Hardware i²c, PWM, and SPI functions are supported.
+
+### Simple programming
+
+rpio tries to make it simple to program devices, rather than having to jump
+through hoops to support an asynchronous workflow.  Some parts of rpio block,
+but that is intentional in order to provide a simpler interface, as well as
+being able to support time-sensitive devices.
+
+The aim is to provide an interface familiar to Unix programmers, with the
+performance to match.
 
 ## Install
 
@@ -105,13 +134,62 @@ $ npm install rpio
 
 ## API
 
-Requiring the addon initializes the bcm2835 library ready to accept commands.
+Start by requiring the addon.
 
 ```js
 var rpio = require('rpio');
 ```
 
-### Pin numbering.
+### GPIO
+
+General purpose I/O tries to follow a standard open/read/write/close model.
+
+Some useful constants are provided for use by all supporting functions:
+
+* `rpio.HIGH` - pin high/1/on
+* `rpio.LOW` - pin low/0/off
+
+These can be useful to avoid magic numbers in your code.
+
+#### `rpio.init([options])`
+
+Initialise the bcm2835 library.  This will be called automatically by `.open()`
+using the default option values if not called explicitly.  The default values
+are:
+
+```js
+var options = {
+        gpiomem: true,          /* Use /dev/gpiomem */
+        mapping: 'physical',    /* Use the P1-P40 numbering scheme */
+}
+```
+
+##### `gpiomem`
+
+There are two device nodes for GPIO access.  The default is `/dev/gpiomem`
+which, when configured with `gpio` group access, allows users in that group to
+read/write directly to that device.  This removes the need to run as root, but
+is limited to GPIO functions.
+
+For non-GPIO functions (i²c, PWM, SPI) the `/dev/mem` device is required for
+full access to the Broadcom peripheral address range and the program needs to
+be executed as the root user (e.g. via sudo).  If you do not explicitly call
+`.init()` when using those functions, the library will do it for you with
+`gpiomem: false`.
+
+You may also need to use `gpiomem: false` if you are running on an older Linux
+kernel which does not support the `gpiomem` module.
+
+rpio will throw an exception if you try to use one of the non-GPIO functions
+after already opening with `/dev/gpiomem`, as well as checking to see if you
+have the necessary permissions.
+
+Valid options:
+
+* `true`: use `/dev/gpiomem` for non-root but GPIO-only access
+* `false`: use `/dev/mem` for full access but requires root
+
+#### `mapping`
 
 There are two naming schemes when referring to GPIO pins:
 
@@ -125,23 +203,20 @@ later models.
 This means the only sane default mapping is the physical layout, so that the
 same code will work on all models regardless of the underlying GPIO mapping.
 
-If you prefer to use the Broadcom GPIO scheme for whatever reason, you can use
-`.setLayout()` to switch:
+If you prefer to use the Broadcom GPIO scheme for whatever reason, you can set
+`mapping` to `gpio` to switch to the GPIOxx naming.
+
+Valid options:
+
+* `gpio`: use the Broadcom GPIOxx naming
+* `physical`: use the physical P01-P40 header layout
+
+Examples:
 
 ```js
-rpio.setLayout('physical');     /* Use the default, physical P1 - P26/P40 */
-rpio.setLayout('gpio');         /* Use the Broadcom GPIOn numbering */
+rpio.init({gpiomem: false});    /* Use /dev/mem for i²c/PWM/SPI */
+rpio.init({mapping: 'gpio'});   /* Use the GPIOxx numbering */
 ```
-
-### GPIO
-
-General purpose I/O tries to follow a standard open/read/write/close model.
-For all functions there are two constants provided:
-
-* `rpio.HIGH` - pin high/1/on
-* `rpio.LOW` - pin low/0/off
-
-These can be useful to avoid magic numbers in your code.
 
 #### `rpio.open(pin, mode[, option])`
 
@@ -161,15 +236,40 @@ which must have a stable value, rather than relying on the initial floating
 value when a pin is enabled for output but hasn't yet been configured with a
 value.
 
+Examples:
+
+```js
+/* Configure P11 as input with the internal pulldown resistor enabled */
+rpio.open(11, rpio.INPUT, rpio.PULL_DOWN);
+
+/* Configure P12 as output with the initiate state set high */
+rpio.open(12, rpio.OUTPUT, rpio.HIGH);
+
+/* Configure P13 as output, but leave it in its initial undefined state */
+rpio.open(13, rpio.OUTPUT);
+```
+
 #### `rpio.mode(pin, mode)`
 
 Switch a pin that has already been opened in one mode to a different mode.
 This is provided primarily for performance reasons, as it avoids some of the
 setup work done by `.open()`.
 
+Example:
+
+```js
+rpio.mode(12, rpio.INPUT);      /* Switch P12 back to input mode */
+```
+
 #### `rpio.read(pin)`
 
 Read the current value of `pin`, returning either `1` (high) or `0` (low).
+
+Example:
+
+```js
+console.log('Pin 12 = %d', rpio.read(12));
+```
 
 #### `rpio.readn(pin, buffer[, length])`
 
@@ -183,10 +283,25 @@ accuracy.  See
 for an example which uses this to pull data from a DHT11 temperature/humidity
 sensor.
 
+Example:
+
+```js
+var buf = new Buffer(10000);
+
+/* Read the value of Pin 12 10,000 times in a row, storing the values in buf */
+rpio.readn(12, buf);
+```
+
 #### `rpio.write(pin, value)`
 
 Set the specified pin either high or low, using either the
 `rpio.HIGH`/`rpio.LOW` constants, or simply `1` or `0`.
+
+Example:
+
+```js
+rpio.write(13, rpio.HIGH);
+```
 
 #### `rpio.pud(pin, state)`
 
@@ -196,6 +311,12 @@ Configure the pin's internal pullup or pulldown resistors, using the following
 * `rpio.PULL_OFF` - disable configured resistors.
 * `rpio.PULL_DOWN` - enable the pulldown resistor.
 * `rpio.PULL_UP` - enable the pullup resistor.
+
+Example:
+
+```js
+rpio.pud(11, rpio.PULL_UP);
+```
 
 #### `rpio.poll(pin, cb[, direction])`
 
@@ -217,10 +338,27 @@ events which transition slower than approximately 1kHz.
 To stop watching for `pin` changes, call `.poll()` again, setting the callback
 to `null` (or anything else which isn't a function).
 
+Example:
+
+```js
+function cb(pin)
+{
+        console.log('Pin %d changed, is now %d', pin, rpio.read(pin));
+}
+rpio.poll(11, cb);
+
 #### `rpio.close(pin)`
 
 Reset `pin` to `rpio.INPUT` and clear any pullup/pulldown resistors and poll
 events.
+
+Examples:
+
+```js
+rpio.close(11);
+rpio.close(12);
+rpio.close(13);
+```
 
 #### GPIO demo
 
@@ -229,6 +367,7 @@ The code below continuously flashes an LED connected to pin 11 at 100Hz.
 ```js
 var rpio = require('rpio');
 
+/* Configure P11 as an output pin, setting its initial state to low */
 rpio.open(11, rpio.OUTPUT, rpio.LOW);
 
 /* Set the pin high every 10ms, and low 5ms after each transition to high */
@@ -249,6 +388,10 @@ not need to worry about which i²c bus to configure.
 
 To get started call `.i2cBegin()` which assigns pins 3 and 5 to i²c use.  Until
 `.i2cEnd()` is called they won't be available for GPIO use.
+
+`.i2cBegin()` will call `.init()` if it hasn't already been called, with
+`gpiomem: false` set.  Hardware i²c support requires `/dev/mem` access and
+therefore root.
 
 ```js
 rpio.i2cBegin();
@@ -342,8 +485,8 @@ rpio.i2cSetBaudRate(10000);
 for (var i = 0; i < init.length; i++)
         lcdwrite(init[i], 0);
 
-lineout("node.js i2c LCD!", LCD_LINE1);
-lineout("npm install rpio", LCD_LINE2);
+lineout('node.js i2c LCD!', LCD_LINE1);
+lineout('npm install rpio', LCD_LINE2);
 
 rpio.i2cEnd();
 ```
@@ -362,6 +505,10 @@ hardware PWM:
 
 * 26-pin models: pin 12
 * 40-pin models: pins 12, 19, 33, 35
+
+Hardware PWM also requires `gpiomem: false` and root privileges.  `.open()`
+will call `.init()` with the appropriate values if you do not explicitly call
+it yourself.
 
 To enable a PIN for PWM, use the `rpio.PWM` argument to `open()`:
 
@@ -437,16 +584,24 @@ SPI switches pins 19, 21, 23, 24 and 25 (GPIO7-GPIO11) to a special mode where
 you can bulk transfer data at high speeds to and from SPI devices, with the
 controller handling the chip enable, clock and data in/out functions.
 
-| Pin | Function |
-|----:|---------:|
-|  19 |     MOSI |
-|  21 |     MISO |
-|  23 |     SCLK |
-|  24 |      CE0 |
-|  25 |      CE1 |
+```js
+/*
+ *  Pin | Function
+ * -----|----------
+ *   19 |   MOSI
+ *   21 |   MISO
+ *   23 |   SCLK
+ *   24 |   CE0
+ *   25 |   CE1
+ */
+```
 
 Once SPI is enabled, the SPI pins are unavailable for GPIO use until `spiEnd()`
 is called.
+
+Use `.spiBegin()` to initiate SPI mode.  SPI requires `gpiomem: false` and root
+privileges.  `.spiBegin()` will call `.init()` with the appropriate values if
+you do not explicitly call it yourself.
 
 ```js
 rpio.spiBegin();           /* Switch GPIO7-GPIO11 to SPI mode */
@@ -534,7 +689,7 @@ rpio.spiSetDataMode(0);
 /*
  * There are various magic numbers below.  A quick overview:
  *
- *   tx[0] is always 0x3, the EEPROM "READ" instruction.
+ *   tx[0] is always 0x3, the EEPROM READ instruction.
  *   tx[1] is set to var i which is the EEPROM address to read from.
  *   tx[2] and tx[3] can be anything, at this point we are only interested in
  *     reading the data back from the EEPROM into our rx buffer.
@@ -551,7 +706,7 @@ for (i = 0; i < 128; i++, ++j) {
         tx[1] = i;
         rpio.spiTransfer(tx, rx, 4);
         out = ((rx[2] << 1) | (rx[3] >> 7));
-        process.stdout.write(out.toString(16) + ((j % 16 == 0) ? "\n" : " "));
+        process.stdout.write(out.toString(16) + ((j % 16 == 0) ? '\n' : ' '));
 }
 rpio.spiEnd();
 ```

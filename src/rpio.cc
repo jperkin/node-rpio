@@ -15,7 +15,7 @@
  */
 
 #include <nan.h>
-#include <unistd.h>	/* geteuid() */
+#include <unistd.h>	/* usleep() */
 #include "bcm2835.h"
 
 #define RPIO_EVENT_LOW	0x1
@@ -332,10 +332,10 @@ NAN_METHOD(spi_end)
  */
 NAN_METHOD(rpio_init)
 {
-	if (geteuid() != 0)
-		return ThrowError("You must be root to access GPIO via mmap()");
+	if ((info.Length() != 1) || (!info[0]->IsNumber()))
+		return ThrowTypeError("Incorrect arguments");
 
-	if (!bcm2835_init())
+	if (!bcm2835_init(info[0]->NumberValue()))
 		return ThrowError("Could not initialize bcm2835 GPIO library");
 }
 
