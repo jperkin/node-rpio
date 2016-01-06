@@ -8,7 +8,7 @@ var pin = 7;
 
 var data = new Array(40);
 var buf = new Buffer(100000);
-var i = 0;
+var i;
 
 /*
  * Initiate the MCU sequence.
@@ -25,16 +25,26 @@ rpio.msleep(3);
 rpio.write(pin, rpio.HIGH);
 
 /*
- * Switch to input mode and read as fast as possible into our buffer.
+ * Switch to input mode and read as fast as possible into our buffer until it
+ * is full.
  */
 rpio.mode(pin, rpio.INPUT);
 rpio.readn(pin, buf);
 
 /*
+ * Older versions of node.js do not have Buffer.join() so we just convert the
+ * buffer to an array and use that instead.
+ */
+var bufarr = new Array(buf.length);
+for (i = 0; i < buf.length; i++)
+	bufarr[i] = buf[i];
+
+/*
  * Parse the buffer for lengths of each high section.  The length determines
  * whether it's a low, high, or control bit.
  */
-buf.join('').replace(/0+/g, '0').split('0').forEach(function(bits) {
+i = 0;
+bufarr.join('').replace(/0+/g, '0').split('0').forEach(function(bits) {
 	/*
 	 * These are magic numbers.  If they don't work then uncomment this
 	 * line instead, it should give you the rough numbers required to
