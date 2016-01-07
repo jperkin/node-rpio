@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "0.8.8",
+  "version": "0.8.9",
   "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
   "main": "./lib/rpio.js",
   "scripts": {
@@ -30,6 +30,6 @@
     "spi"
   ],
   "author": "Jonathan Perkin <jonathan@perkin.org.uk> (http://www.perkin.org.uk/)",
-  "license": "ISC AND GPL-2.0",
+  "license": "(ISC AND GPL-2.0)",
   "gypfile": true
 }
