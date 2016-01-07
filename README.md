@@ -9,7 +9,7 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
 ## Compatibility
 
-* Raspberry Pi Models: A, B, A+, B+, 2.
+* Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2.
 * Node.js Versions: 0.8, 0.10, 0.12, 4.x, 5.x
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
@@ -228,8 +228,10 @@ later models.
 This means the only sane default mapping is the physical layout, so that the
 same code will work on all models regardless of the underlying GPIO mapping.
 
-If you prefer to use the Broadcom GPIO scheme for whatever reason, you can set
-`mapping` to `gpio` to switch to the GPIOxx naming.
+If you prefer to use the Broadcom GPIO scheme for whatever reason (e.g. to use
+the P5 header pins on the Raspberry Pi 1 revision 2.0 model which aren't
+currently mapped to the physical layout), you can set `mapping` to `gpio` to
+switch to the GPIOxx naming.
 
 Valid options:
 
