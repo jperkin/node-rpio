@@ -298,7 +298,7 @@ Example:
 console.log('Pin 12 = %d', rpio.read(12));
 ```
 
-#### `rpio.readn(pin, buffer[, length])`
+#### `rpio.readbuf(pin, buffer[, length])`
 
 Read `length` bits from `pin` into `buffer` as fast as possible.  If `length`
 isn't specified it defaults to `buffer.length`.
@@ -316,7 +316,7 @@ Example:
 var buf = new Buffer(10000);
 
 /* Read the value of Pin 12 10,000 times in a row, storing the values in buf */
-rpio.readn(12, buf);
+rpio.readbuf(12, buf);
 ```
 
 #### `rpio.write(pin, value)`
@@ -328,6 +328,20 @@ Example:
 
 ```js
 rpio.write(13, rpio.HIGH);
+```
+
+#### `rpio.writebuf(pin, buffer[, length])`
+
+Write `length` bits to `pin` from `buffer` as fast as possible.  If `length`
+isn't specified it defaults to `buffer.length`.
+
+Example:
+
+```js
+/* Write 1 0 1 0 1 0 1 0 to Pin 13 */
+var buf = new Buffer(8).fill(rpio.LOW);
+buf[0] = buf[2] = buf[4] = buf[6] = rpio.HIGH;
+rpio.writebuf(13, buf);
 ```
 
 #### `rpio.pud(pin, state)`

@@ -28,7 +28,7 @@ rpio.write(pin, rpio.HIGH);
  * Switch to input mode and read as fast as possible into our buffer.
  */
 rpio.mode(pin, rpio.INPUT);
-rpio.readn(pin, buf);
+rpio.readbuf(pin, buf);
 
 /*
  * Parse the buffer for lengths of each high section.  The length determines
