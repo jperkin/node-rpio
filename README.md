@@ -4,8 +4,9 @@ node-rpio
 This is a high performance node.js addon which provides access to the Raspberry
 Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
-[![Build Status](https://travis-ci.org/jperkin/node-rpio.svg?branch=master)](https://travis-ci.org/jperkin/node-rpio)
+[![Node.js version](https://img.shields.io/node/v/rpio.svg)](http://nodejs.org/download/)
 [![NPM version](https://badge.fury.io/js/rpio.svg)](http://badge.fury.io/js/rpio)
+[![Build Status](https://travis-ci.org/jperkin/node-rpio.svg?branch=master)](https://travis-ci.org/jperkin/node-rpio)
 
 ## Compatibility
 
