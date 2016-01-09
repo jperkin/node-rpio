@@ -345,6 +345,64 @@ buf[0] = buf[2] = buf[4] = buf[6] = rpio.HIGH;
 rpio.writebuf(13, buf);
 ```
 
+#### `rpio.readpad(group)`
+
+Read the current state of the GPIO pad control for the specified GPIO group.
+On current models of Raspberry Pi there are three groups with corresponding
+defines:
+
+* `rpio.PAD_GROUP_0_27`: GPIO0 - GPIO27.  Use this for the main GPIO header.
+* `rpio.PAD_GROUP_28_45`: GPIO28 - GPIO45.  Use this to configure the P5 header.
+* `rpio.PAD_GROUP_46_53`: GPIO46 - GPIO53.  Internal, you probably won't need this.
+
+The value returned will be a bit mask of the following defines:
+
+* `rpio.PAD_SLEW_UNLIMITED`: `0x10`.  Slew rate unlimited if set.
+* `rpio.PAD_HYSTERESIS`: `0x08`.  Hysteresis is enabled if set.
+
+The bottom three bits determine the drive current:
+
+* `rpio.PAD_DRIVE_2mA`: `0b000`
+* `rpio.PAD_DRIVE_4mA`: `0b001`
+* `rpio.PAD_DRIVE_6mA`: `0b010`
+* `rpio.PAD_DRIVE_8mA`: `0b011`
+* `rpio.PAD_DRIVE_10mA`: `0b100`
+* `rpio.PAD_DRIVE_12mA`: `0b101`
+* `rpio.PAD_DRIVE_14mA`: `0b110`
+* `rpio.PAD_DRIVE_16mA`: `0b111`
+
+Note that the pad control registers are not available via `/dev/gpiomem`, so
+you will need to use `.init({gpiomem: false})` and run as root.
+
+Example:
+
+```js
+var curpad = rpio.readpad(rpio.PAD_GROUP_0_27);
+
+var slew = ((curpad & rpio.PAD_SLEW_UNLIMITED) == rpio.PAD_SLEW_UNLIMITED);
+var hysteresis = ((curpad & rpio.PAD_HYSTERESIS) == rpio.PAD_HYSTERESIS);
+var drive = (curpad & 0x7);
+
+console.log('GPIO Pad Control for GPIO0 - GPIO27 is currently set to:');
+console.log('\tSlew rate: ' + (slew ? 'unlimited' : 'limited'));
+console.log('\tInput hysteresis: ' + (hysteresis ? 'enabled' : 'disabled'));
+console.log('\tDrive rate: ' + (drive * 2 + 2) + 'mA');
+```
+
+#### `rpio.writepad(group, control)`
+
+Write `control` settings to the pad control for `group`.  Uses the same defines
+as above for `.readpad()`.
+
+Example:
+
+```js
+/* Disable input hysteresis but retain other current settings. */
+var control = rpio.readpad(rpio.PAD_GROUP_0_27);
+control &= ~rpio.PAD_HYSTERESIS;
+rpio.writepad(rpio.PAD_GROUP_0_27, control);
+```
+
 #### `rpio.pud(pin, state)`
 
 Configure the pin's internal pullup or pulldown resistors, using the following

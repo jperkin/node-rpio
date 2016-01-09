@@ -92,6 +92,24 @@ NAN_METHOD(gpio_writebuf)
 		bcm2835_gpio_write(info[0]->NumberValue(), buf[i]);
 }
 
+NAN_METHOD(gpio_pad_read)
+{
+	if ((info.Length() != 1) || !info[0]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	info.GetReturnValue().Set(bcm2835_gpio_pad(info[0]->NumberValue()));
+}
+
+NAN_METHOD(gpio_pad_write)
+{
+	if ((info.Length() != 2) ||
+	    !info[0]->IsNumber() ||
+	    !info[1]->IsNumber())
+		return ThrowTypeError("Incorrect arguments");
+
+	bcm2835_gpio_set_pad(info[0]->NumberValue(), info[1]->NumberValue());
+}
+
 NAN_METHOD(gpio_pud)
 {
 	if ((info.Length() != 2) ||
@@ -393,6 +411,8 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, gpio_readbuf);
 	NAN_EXPORT(target, gpio_write);
 	NAN_EXPORT(target, gpio_writebuf);
+	NAN_EXPORT(target, gpio_pad_read);
+	NAN_EXPORT(target, gpio_pad_write);
 	NAN_EXPORT(target, gpio_pud);
 	NAN_EXPORT(target, gpio_event_set);
 	NAN_EXPORT(target, gpio_event_poll);
