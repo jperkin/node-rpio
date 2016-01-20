@@ -504,7 +504,11 @@ automatically detects which Raspberry Pi revision you are running, so you do
 not need to worry about which i²c bus to configure.
 
 To get started call `.i2cBegin()` which assigns pins 3 and 5 to i²c use.  Until
-`.i2cEnd()` is called they won't be available for GPIO use.
+`.i2cEnd()` is called they won't be available for GPIO use.  The pin
+assignments are:
+
+* Pin 3: SDA (Serial Data)
+* Pin 5: SCL (Serial Clock)
 
 `.i2cBegin()` will call `.init()` if it hasn't already been called, with
 `gpiomem: false` set.  Hardware i²c support requires `/dev/mem` access and
