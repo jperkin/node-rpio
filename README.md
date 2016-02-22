@@ -749,7 +749,7 @@ polarity.
 rpio.spiSetCSPolarity(0, rpio.HIGH);    /* Set CE0 high to activate */
 ```
 
-Set the SPI clock speed with `spiSetClockDivider()`.  This is a power-of-two
+Set the SPI clock speed with `spiSetClockDivider()`.  This is an even
 divisor of the base 250MHz rate, defaulting to `0 == 65536 == 3.81kHz`.
 
 ```js
