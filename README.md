@@ -10,7 +10,7 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
 ## Compatibility
 
-* Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, Zero.
+* Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, 3, Zero.
 * Node.js Versions: 0.8, 0.10, 0.12, 4.x, 5.x
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
