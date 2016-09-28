@@ -625,7 +625,7 @@ low at particular times), but you are limited to only certain pins supporting
 hardware PWM:
 
 * 26-pin models: pin 12
-* 40-pin models: pins 12, 19, 33, 35
+* 40-pin models: pins 12, 32, 33, 35
 
 Hardware PWM also requires `gpiomem: false` and root privileges.  `.open()`
 will call `.init()` with the appropriate values if you do not explicitly call
