@@ -464,17 +464,24 @@ rpio.poll(11, regular_button);
 rpio.poll(12, nuke_button, rpio.POLL_HIGH);
 ```
 
-#### `rpio.close(pin)`
+#### `rpio.close(pin[, reset])`
 
-Reset `pin` to `rpio.INPUT` and clear any pullup/pulldown resistors and poll
-events.
+Indicate that the pin will no longer be used, and clear any poll events
+associated with it.
+
+The optional `reset` argument can be used to configure the state that `pin`
+will be left in after close:
+
+* `rpio.PIN_RESET`: return pin to `rpio.INPUT` and clear any pullup/pulldown
+  resistors.  This is the default.
+* `rpio.PIN_PRESERVE`: leave pin in its currently configured state.
 
 Examples:
 
 ```js
 rpio.close(11);
-rpio.close(12);
-rpio.close(13);
+rpio.close(12, rpio.PIN_RESET);
+rpio.close(13, rpio.PIN_PRESERVE);
 ```
 
 #### GPIO demo
