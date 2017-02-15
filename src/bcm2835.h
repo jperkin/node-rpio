@@ -37,7 +37,8 @@
   Do not contact the author directly, unless it is to discuss commercial licensing.
   Before asking a question or reporting a bug, please read http://www.catb.org/esr/faqs/smart-questions.html
   
-  Tested on debian6-19-04-2012, 2012-07-15-wheezy-raspbian, 2013-07-26-wheezy-raspbian
+  Tested on debian6-19-04-2012, 2012-07-15-wheezy-raspbian, 2013-07-
+  -wheezy-raspbian
   and Occidentalisv01
   CAUTION: it has been observed that when detect enables such as bcm2835_gpio_len() 
   are used and the pin is pulled LOW
@@ -706,6 +707,8 @@ typedef enum
     RPI_V2_GPIO_P1_23     = 11,  /*!< Version 2, Pin P1-23, CLK when SPI0 in use */
     RPI_V2_GPIO_P1_24     =  8,  /*!< Version 2, Pin P1-24, CE0 when SPI0 in use */
     RPI_V2_GPIO_P1_26     =  7,  /*!< Version 2, Pin P1-26, CE1 when SPI0 in use */
+    RPI_V2_GPIO_P1_27     =  0,  /*!< Version 2, Pin P1-27 */
+    RPI_V2_GPIO_P1_28     =  1,  /*!< Version 2, Pin P1-28 */
     RPI_V2_GPIO_P1_29     =  5,  /*!< Version 2, Pin P1-29 */
     RPI_V2_GPIO_P1_31     =  6,  /*!< Version 2, Pin P1-31 */
     RPI_V2_GPIO_P1_32     = 12,  /*!< Version 2, Pin P1-32 */
