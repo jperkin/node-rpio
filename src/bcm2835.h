@@ -706,6 +706,8 @@ typedef enum
     RPI_V2_GPIO_P1_23     = 11,  /*!< Version 2, Pin P1-23, CLK when SPI0 in use */
     RPI_V2_GPIO_P1_24     =  8,  /*!< Version 2, Pin P1-24, CE0 when SPI0 in use */
     RPI_V2_GPIO_P1_26     =  7,  /*!< Version 2, Pin P1-26, CE1 when SPI0 in use */
+    RPI_V2_GPIO_P1_27     =  0,  /*!< Version 2, Pin P1-27 */
+    RPI_V2_GPIO_P1_28     =  1,  /*!< Version 2, Pin P1-28 */
     RPI_V2_GPIO_P1_29     =  5,  /*!< Version 2, Pin P1-29 */
     RPI_V2_GPIO_P1_31     =  6,  /*!< Version 2, Pin P1-31 */
     RPI_V2_GPIO_P1_32     = 12,  /*!< Version 2, Pin P1-32 */
