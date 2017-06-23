@@ -708,7 +708,7 @@ var pulse = setInterval(function() {
 
 ### SPI
 
-SPI switches pins 19, 21, 23, 24 and 25 (GPIO7-GPIO11) to a special mode where
+SPI switches pins 19, 21, 23, 24 and 26 (GPIO7-GPIO11) to a special mode where
 you can bulk transfer data at high speeds to and from SPI devices, with the
 controller handling the chip enable, clock and data in/out functions.
 
@@ -720,7 +720,7 @@ controller handling the chip enable, clock and data in/out functions.
  *   21 |   MISO
  *   23 |   SCLK
  *   24 |   CE0
- *   25 |   CE1
+ *   26 |   CE1
  */
 ```
 
@@ -742,7 +742,7 @@ Choose which of the chip select / chip enable pins to control:
  *  Value | Pin
  *  ------|---------------------
  *    0   | SPI_CE0 (24 / GPIO8)
- *    1   | SPI_CE1 (25 / GPIO7)
+ *    1   | SPI_CE1 (26 / GPIO7)
  *    2   | Both
  */
 rpio.spiChipSelect(0);
