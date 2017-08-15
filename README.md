@@ -39,7 +39,7 @@ For access to i²c, PWM, and SPI, or if you are running an older kernel which
 does not have the `bcm2835-gpiomem` module, you will need to run your programs
 as root for access to `/dev/mem`.
 
-## Quickstart
+## Quickstart
 
 All these examples use the physical numbering (P01-P40) and assume that the
 example is started with:
@@ -48,7 +48,7 @@ example is started with:
 var rpio = require('rpio');
 ```
 
-### Read a pin
+### Read a pin
 
 Setup pin P11 / GPIO17 for read-only input and print its current value:
 
@@ -850,7 +850,7 @@ rpio.msleep(n);         /* Sleep for n milliseconds */
 rpio.usleep(n);         /* Sleep for n microseconds */
 ```
 
-## Authors And Licenses
+## Authors and licenses
 
 Mike McCauley wrote `src/bcm2835.{c,h}` which are under the GPL.
 
