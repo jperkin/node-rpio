@@ -13,7 +13,7 @@ Pi, Orange Pi and NanoPi NEO Plus2 GPIO interface, supporting regular GPIO as we
 * Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, 3, Zero.
 * NanoPi Models: NEO, NEO2
 * Orange Pi
-* Node.js Versions: 0.8, 0.10, 0.12, 4.x, 5.x, 6.x
+* Node.js Versions: 0.8, 0.10, 0.12, 4.x, 5.x, 6.x, 7.x
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
 support.  If you see compilation problems related to C++11, this is the likely
@@ -41,7 +41,7 @@ For access to i²c, PWM, and SPI, or if you are running an older kernel which
 does not have the `bcm2835-gpiomem` module, you will need to run your programs
 as root for access to `/dev/mem`.
 
-## Quickstart
+## Quickstart
 
 All these examples use the physical numbering (P01-P40) and assume that the
 example is started with:
@@ -50,7 +50,7 @@ example is started with:
 var rpio = require('rpio');
 ```
 
-### Read a pin
+### Read a pin
 
 Setup pin P11 / GPIO17 for read-only input and print its current value:
 
@@ -466,17 +466,24 @@ rpio.poll(11, regular_button);
 rpio.poll(12, nuke_button, rpio.POLL_HIGH);
 ```
 
-#### `rpio.close(pin)`
+#### `rpio.close(pin[, reset])`
 
-Reset `pin` to `rpio.INPUT` and clear any pullup/pulldown resistors and poll
-events.
+Indicate that the pin will no longer be used, and clear any poll events
+associated with it.
+
+The optional `reset` argument can be used to configure the state that `pin`
+will be left in after close:
+
+* `rpio.PIN_RESET`: return pin to `rpio.INPUT` and clear any pullup/pulldown
+  resistors.  This is the default.
+* `rpio.PIN_PRESERVE`: leave pin in its currently configured state.
 
 Examples:
 
 ```js
 rpio.close(11);
-rpio.close(12);
-rpio.close(13);
+rpio.close(12, rpio.PIN_RESET);
+rpio.close(13, rpio.PIN_PRESERVE);
 ```
 
 #### GPIO demo
@@ -627,7 +634,7 @@ low at particular times), but you are limited to only certain pins supporting
 hardware PWM:
 
 * 26-pin models: pin 12
-* 40-pin models: pins 12, 19, 33, 35
+* 40-pin models: pins 12, 32, 33, 35
 
 Hardware PWM also requires `gpiomem: false` and root privileges.  `.open()`
 will call `.init()` with the appropriate values if you do not explicitly call
@@ -703,7 +710,7 @@ var pulse = setInterval(function() {
 
 ### SPI
 
-SPI switches pins 19, 21, 23, 24 and 25 (GPIO7-GPIO11) to a special mode where
+SPI switches pins 19, 21, 23, 24 and 26 (GPIO7-GPIO11) to a special mode where
 you can bulk transfer data at high speeds to and from SPI devices, with the
 controller handling the chip enable, clock and data in/out functions.
 
@@ -715,7 +722,7 @@ controller handling the chip enable, clock and data in/out functions.
  *   21 |   MISO
  *   23 |   SCLK
  *   24 |   CE0
- *   25 |   CE1
+ *   26 |   CE1
  */
 ```
 
@@ -737,7 +744,7 @@ Choose which of the chip select / chip enable pins to control:
  *  Value | Pin
  *  ------|---------------------
  *    0   | SPI_CE0 (24 / GPIO8)
- *    1   | SPI_CE1 (25 / GPIO7)
+ *    1   | SPI_CE1 (26 / GPIO7)
  *    2   | Both
  */
 rpio.spiChipSelect(0);
@@ -845,7 +852,7 @@ rpio.msleep(n);         /* Sleep for n milliseconds */
 rpio.usleep(n);         /* Sleep for n microseconds */
 ```
 
-## Authors And Licenses
+## Authors and licenses
 
 Mike McCauley wrote `src/bcm2835.{c,h}` which are under the GPL.
 

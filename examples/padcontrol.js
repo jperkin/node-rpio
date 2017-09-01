@@ -1,4 +1,6 @@
-var rpio = require('./lib/rpio');
+var rpio = require('../lib/rpio');
+
+rpio.init({gpiomem: false});
 
 /* Print the current pad control settings for the primary GPIO pins. */
 var curpad = rpio.readpad(rpio.PAD_GROUP_0_27);
