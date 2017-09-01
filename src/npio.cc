@@ -17,7 +17,6 @@
 #include <nan.h>
 #include <unistd.h>	/* usleep() */
 #include "wiringPi.h"
-#include "wiringPiI2C.h"
 
 #define RPIO_EVENT_LOW	0x1
 #define RPIO_EVENT_HIGH	0x2
