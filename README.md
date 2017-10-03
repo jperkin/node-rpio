@@ -187,6 +187,7 @@ are:
 var options = {
         gpiomem: true,          /* Use /dev/gpiomem */
         mapping: 'physical',    /* Use the P1-P40 numbering scheme */
+        mock: undefined,        /* Emulate specific hardware in mock mode */
 }
 ```
 
@@ -215,7 +216,7 @@ Valid options:
 * `true`: use `/dev/gpiomem` for non-root but GPIO-only access
 * `false`: use `/dev/mem` for full access but requires root
 
-#### `mapping`
+##### `mapping`
 
 There are two naming schemes when referring to GPIO pins:
 
@@ -244,6 +245,48 @@ Examples:
 ```js
 rpio.init({gpiomem: false});    /* Use /dev/mem for i²c/PWM/SPI */
 rpio.init({mapping: 'gpio'});   /* Use the GPIOxx numbering */
+```
+
+##### `mock`
+
+Mock mode is a dry-run environment where everything except pin access is
+performed.  This is useful for testing scripts, and can also be used on systems
+which do not support GPIO at all.
+
+If rpio is executed on unsupported hardware it will automatically start up in
+mock mode, and a `warn` event is emitted.  By default the `warn` event is
+handled by a simple logger to `stdout`, but this can be overridden by the user
+creating their own `warn` handler.
+
+The user can also explicitly request mock mode, where the argument is the type
+of hardware they wish to emulate.  The currently available options are:
+
+* 26-pin Raspberry Pi models
+    * `raspi-b-r1` (early rev 1 model)
+    * `raspi-a`
+    * `raspi-b`
+* 40-pin Raspberry Pi models
+    * `raspi-a+`
+    * `raspi-b+`
+    * `raspi-2`
+    * `raspi-3`
+    * `raspi-zero`
+    * `raspi-zero-w` (zero with wireless)
+
+The default unsupported hardware emulation is `raspi-3`.
+
+Examples:
+
+```js
+/*
+ * Explicitly request mock mode to avoid warnings when running on known
+ * unsupported hardware, or to test scripts in a different hardware
+ * environment (e.g. to check pin settings).
+ */
+rpio.init({mock: 'raspi-3'});
+
+/* Override default warn handler to avoid mock warnings */
+rpio.on('warn', function() {});
 ```
 
 #### `rpio.open(pin, mode[, option])`
