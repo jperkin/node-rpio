@@ -884,14 +884,20 @@ rpio.spiEnd();
 
 ### Misc
 
-To make code simpler a few sleep functions are supported, using the hardware
-directly so should be reasonably accurate.
+To make code simpler a few sleep functions are supported.
 
 ```js
 rpio.sleep(n);          /* Sleep for n seconds */
 rpio.msleep(n);         /* Sleep for n milliseconds */
 rpio.usleep(n);         /* Sleep for n microseconds */
 ```
+
+There will be a startup cost when calling these functions, so it is worth
+performing some initial benchmarks to calculate the latency for your hardware
+when using the high resolution functions, then factoring that in to your calls.
+
+Community benchmarks suggest that the cost for `usleep()` is 72 microseconds on
+raspi-3 and 130 microseconds on raspi-2.
 
 ## Authors and licenses
 
