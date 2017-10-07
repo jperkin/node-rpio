@@ -897,7 +897,8 @@ performing some initial benchmarks to calculate the latency for your hardware
 when using the high resolution functions, then factoring that in to your calls.
 
 Community benchmarks suggest that the cost for `usleep()` is 72 microseconds on
-raspi-3 and 130 microseconds on raspi-2.
+raspi-3 and 130 microseconds on raspi-1, with latency reducing significantly
+after the first call.
 
 ## Authors and licenses
 
