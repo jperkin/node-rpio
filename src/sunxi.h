@@ -115,14 +115,13 @@ extern int wiringPiFailure (int fatal, const char *message, ...) ;
 
 // Core wiringPi functions
 
-extern int  wiringPiSetup       (int gpiomem) ;
+extern int  sunxi_init           (int gpiomem) ;
 
-extern void pinMode             (int pin, int mode) ;
-extern void pullUpDnControl     (int pin, int pud) ;
-extern int  digitalRead         (int pin) ;
-extern void digitalWrite        (int pin, int value) ;
-extern void pwmWrite            (int pin, int value) ;
-extern void analogWrite         (int pin, int value) ;
+extern void sunxi_gpio_fsel      (uint8_t pin, uint8_t mode) ;
+extern void sunxi_pullUpDnControl(int pin, int pud) ;
+extern uint8_t sunxi_gpio_lev    (uint8_t pin) ;
+extern void sunxi_gpio_write     (uint8_t pin, uint8_t on) ;
+extern void analogWrite          (int pin, int value) ;
 
 // PiFace specifics 
 //	(Deprecated)
@@ -135,9 +134,10 @@ extern int  wiringPiSetupPiFaceForGpioProg (void) ;	// Don't use this - for gpio
 extern int  piBoardRev          (void) ;
 extern int  getAlt              (int pin) ;
 extern void pwmToneWrite        (int pin, int freq) ;
-extern void pwmSetMode          (int mode) ;
-extern void pwmSetRange         (unsigned int range) ;
-extern void pwmSetClock         (int divisor) ;
+extern void sunxi_pwm_set_mode  (uint8_t channel, uint8_t markspace, uint8_t enabled) ;
+extern void sunxi_pwm_set_clock (uint32_t divisor);
+extern void sunxi_pwm_set_range (uint32_t range) ;
+extern void sunxi_pwm_set_data  (uint32_t data) ;
 extern void gpioClockSet        (int pin, int freq) ;
 
 // Threads
@@ -156,6 +156,14 @@ extern void         delay             (unsigned int howLong) ;
 extern void         delayMicroseconds (unsigned int howLong) ;
 extern unsigned int millis            (void) ;
 extern unsigned int micros            (void) ;
+
+extern int sunxi_i2c_begin            (const int devId) ;
+extern void sunxi_i2c_setSlaveAddress(uint8_t addr) ;
+extern uint8_t sunxi_i2c_read(char* buf, uint32_t len) ;
+extern uint8_t sunxi_i2c_write(char* buf, uint32_t len) ;
+
+extern void sunxi_spi_begin(void) ;
+extern int sunxi_spi_transfernb (char* tbuf, char* rbuf, uint32_t len) ;
 
 #ifdef __cplusplus
 }

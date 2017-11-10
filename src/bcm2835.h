@@ -1189,6 +1189,8 @@ extern "C" {
      */
     extern void bcm2835_gpio_set_eds_multi(uint32_t mask);
 
+    extern void bcm2835_gpio_event_set(uint8_t pin, uint32_t direction);
+
     /*! Enable Rising Edge Detect Enable for the specified pin.
       When a rising edge is detected, sets the appropriate pin in Event Detect Status.
       The GPRENn registers use
@@ -1273,15 +1275,7 @@ extern "C" {
       \param[in] pud The desired Pull-up/down mode. One of BCM2835_GPIO_PUD_* from bcm2835PUDControl
       \sa bcm2835_gpio_set_pud()
     */
-    extern void bcm2835_gpio_pud(uint8_t pud);
-
-    /*! Clocks the Pull-up/down value set earlier by bcm2835_gpio_pud() into the pin.
-      \param[in] pin GPIO number, or one of RPI_GPIO_P1_* from \ref RPiGPIOPin.
-      \param[in] on HIGH to clock the value from bcm2835_gpio_pud() into the pin. 
-      LOW to remove the clock. 
-      \sa bcm2835_gpio_set_pud()
-    */
-    extern void bcm2835_gpio_pudclk(uint8_t pin, uint8_t on);
+    extern void bcm2835_pullUpDnControl(uint8_t pin, uint8_t pud);
 
     /*! Reads and returns the Pad Control for the given GPIO group.
       \param[in] group The GPIO pad group number, one of BCM2835_PAD_GROUP_GPIO_*
