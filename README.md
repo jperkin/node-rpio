@@ -13,7 +13,7 @@ Pi, Orange Pi and NanoPi NEO Plus2 GPIO interface, supporting regular GPIO as we
 * Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, 3, Zero.
 * NanoPi Models: NEO, NEO2
 * Orange Pi
-* Node.js Versions: 0.8, 0.10, 0.12, 4.x, 5.x, 6.x, 7.x
+* Node.js Versions: 0.8, 0.10, 0.12, 4, 5, 6, 7, 8
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
 support.  If you see compilation problems related to C++11, this is the likely
@@ -189,6 +189,7 @@ are:
 var options = {
         gpiomem: true,          /* Use /dev/gpiomem */
         mapping: 'physical',    /* Use the P1-P40 numbering scheme */
+        mock: undefined,        /* Emulate specific hardware in mock mode */
 }
 ```
 
@@ -217,7 +218,7 @@ Valid options:
 * `true`: use `/dev/gpiomem` for non-root but GPIO-only access
 * `false`: use `/dev/mem` for full access but requires root
 
-#### `mapping`
+##### `mapping`
 
 There are two naming schemes when referring to GPIO pins:
 
@@ -246,6 +247,48 @@ Examples:
 ```js
 rpio.init({gpiomem: false});    /* Use /dev/mem for i²c/PWM/SPI */
 rpio.init({mapping: 'gpio'});   /* Use the GPIOxx numbering */
+```
+
+##### `mock`
+
+Mock mode is a dry-run environment where everything except pin access is
+performed.  This is useful for testing scripts, and can also be used on systems
+which do not support GPIO at all.
+
+If rpio is executed on unsupported hardware it will automatically start up in
+mock mode, and a `warn` event is emitted.  By default the `warn` event is
+handled by a simple logger to `stdout`, but this can be overridden by the user
+creating their own `warn` handler.
+
+The user can also explicitly request mock mode, where the argument is the type
+of hardware they wish to emulate.  The currently available options are:
+
+* 26-pin Raspberry Pi models
+    * `raspi-b-r1` (early rev 1 model)
+    * `raspi-a`
+    * `raspi-b`
+* 40-pin Raspberry Pi models
+    * `raspi-a+`
+    * `raspi-b+`
+    * `raspi-2`
+    * `raspi-3`
+    * `raspi-zero`
+    * `raspi-zero-w` (zero with wireless)
+
+The default unsupported hardware emulation is `raspi-3`.
+
+Examples:
+
+```js
+/*
+ * Explicitly request mock mode to avoid warnings when running on known
+ * unsupported hardware, or to test scripts in a different hardware
+ * environment (e.g. to check pin settings).
+ */
+rpio.init({mock: 'raspi-3'});
+
+/* Override default warn handler to avoid mock warnings */
+rpio.on('warn', function() {});
 ```
 
 #### `rpio.open(pin, mode[, option])`
@@ -843,14 +886,21 @@ rpio.spiEnd();
 
 ### Misc
 
-To make code simpler a few sleep functions are supported, using the hardware
-directly so should be reasonably accurate.
+To make code simpler a few sleep functions are supported.
 
 ```js
 rpio.sleep(n);          /* Sleep for n seconds */
 rpio.msleep(n);         /* Sleep for n milliseconds */
 rpio.usleep(n);         /* Sleep for n microseconds */
 ```
+
+There will be a startup cost when calling these functions, so it is worth
+performing some initial benchmarks to calculate the latency for your hardware
+when using the high resolution functions, then factoring that in to your calls.
+
+Community benchmarks suggest that the cost for `usleep()` is 72 microseconds on
+raspi-3 and 130 microseconds on raspi-1, with latency reducing significantly
+after the first call.
 
 ## Authors and licenses
 

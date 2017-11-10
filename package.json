@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "0.9.17",
+  "version": "0.9.19",
   "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi, NanoPi and Orange Pi",
   "main": "./lib/rpio.js",
   "scripts": {
