@@ -343,7 +343,7 @@ void sunxi_gpio_fsel(uint8_t pin, uint8_t mode) {
         if (wiringPiDebug)
             printf(">>>>>line:%d PWM mode ready to set val: 0x%x\n", __LINE__, regval);
         writel(regval, phyaddr);
-        delayMicroseconds(200);
+        sunxi_delayMicroseconds(200);
         regval = readl(phyaddr);
         if (wiringPiDebug)
             printf("<<<<<PWM mode set over reg val: 0x%x\n", regval);
@@ -356,7 +356,7 @@ void sunxi_gpio_fsel(uint8_t pin, uint8_t mode) {
         sunxi_pwm_set_act(512);
         pwmSetMode(PWM_MODE_MS);
         sunxi_pwm_set_clk(PWM_CLK_DIV_120); //default clk:24M/120
-        delayMicroseconds(200);
+        sunxi_delayMicroseconds(200);
     }
 
     return;
@@ -656,7 +656,7 @@ void delay(unsigned int howLong) {
 }
 
 /*
- * delayMicroseconds:
+ * sunxi_delayMicroseconds:
  *	This is somewhat intersting. It seems that on the Pi, a single call
  *	to nanosleep takes some 80 to 130 microseconds anyway, so while
  *	obeying the standards (may take longer), it's not always what we
@@ -685,7 +685,7 @@ void delayMicrosecondsHard(unsigned int howLong) {
         gettimeofday(&tNow, NULL);
 }
 
-void delayMicroseconds(unsigned int howLong) {
+void sunxi_delayMicroseconds(unsigned int howLong) {
     struct timespec sleeper;
     unsigned int uSecs = howLong % 1000000;
     unsigned int wSecs = howLong / 1000000;

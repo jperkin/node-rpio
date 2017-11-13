@@ -59,9 +59,9 @@ NAN_METHOD(gpio_read)
     uint8_t value = 0;
 
     if (type == BCM2835) {
-        value = bcm2835_gpio_lev(pin)
+        value = bcm2835_gpio_lev(pin);
     } else if (type == SUNXI) {
-        value = sunxi_gpio_lev(pin)
+        value = sunxi_gpio_lev(pin);
     }
 
 	info.GetReturnValue().Set(value);
@@ -101,7 +101,7 @@ NAN_METHOD(gpio_write)
     uint8_t on = info[1]->NumberValue();
 
     if (type == BCM2835) {
-        bcm2835_gpio_write(pin, on)
+        bcm2835_gpio_write(pin, on);
     } else if (type == SUNXI) {
         sunxi_gpio_write(pin, on);
     }
