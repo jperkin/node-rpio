@@ -34,8 +34,8 @@
 
 // Environment Variables
 
-#define ENV_DEBUG "WIRINGPI_DEBUG"
-#define ENV_CODES "WIRINGPI_CODES"
+#define ENV_DEBUG "SUNXI_DEBUG"
+#define ENV_CODES "SUNXI_CODES"
 
 
 // Access from ARM Running Linux
@@ -61,7 +61,6 @@ static volatile uint32_t *timerIrqRaw;
 
 #define CLOCK_BASE (0x00101000)
 #define GPIO_BASE  (0x01C20000)
-//#define GPIO_TIMER (0x0000B000)
 #define GPIO_PWM   (0x01C21000)
 
 #define SUNXI_PWM_CTRL_REG    (0x01C21400)
@@ -73,38 +72,21 @@ static volatile uint32_t *timerIrqRaw;
 #define SUNXI_PWM_CH0_MS_MODE  (1 << 7) //pulse mode
 #define SUNXI_PWM_CH0_PUL_START  (1 << 8)
 
-//#define SUNXI_PWM_CH1_EN   (1 << 19)
-//#define SUNXI_PWM_CH1_ACT_STA  (1 << 20)
-//#define SUNXI_PWM_SCLK_CH1_GATING (1 << 21)
-//#define SUNXI_PWM_CH1_MS_MODE  (1 << 22) //pulse mode
-//#define SUNXI_PWM_CH1_PUL_START  (1 << 23)
-
-
 #define PWM_CLK_DIV_120  0
-//#define PWM_CLK_DIV_180  1
-//#define PWM_CLK_DIV_240  2
-//#define PWM_CLK_DIV_360  3
-//#define PWM_CLK_DIV_480  4
-//#define PWM_CLK_DIV_12K  8
-//#define PWM_CLK_DIV_24K  9
-//#define PWM_CLK_DIV_36K  10
-//#define PWM_CLK_DIV_48K  11
-//#define PWM_CLK_DIV_72K  12
 
 #define I2C_SLAVE	0x0703
 #define I2C_SMBUS	0x0720	/* SMBus-level access */
 
 // SMBus transaction types
-
-//#define I2C_SMBUS_QUICK		    0
-//#define I2C_SMBUS_BYTE		    1
 #define I2C_SMBUS_BYTE_DATA	    2
-//#define I2C_SMBUS_WORD_DATA	    3
-//#define I2C_SMBUS_PROC_CALL	    4
-//#define I2C_SMBUS_BLOCK_DATA	    5
-//#define I2C_SMBUS_I2C_BLOCK_BROKEN  6
-//#define I2C_SMBUS_BLOCK_PROC_CALL   7		/* SMBus 2.0 */
-//#define I2C_SMBUS_I2C_BLOCK_DATA    8
+
+// PWM
+#define	PWM_MODE_MS		0
+
+
+// Failure modes
+#define	WPI_FATAL	(1==1)
+#define	WPI_ALMOST	(1==2)
 
 // The SPI bus parameters
 //	Variables as they need to be passed as pointers later on
@@ -150,6 +132,21 @@ int spi_fd = -1;
  * Functions
  *********************************************************************************
  */
+
+/*
+ * delay:
+ *	Wait for some number of milliseconds
+ *********************************************************************************
+ */
+
+void delay(unsigned int howLong) {
+    struct timespec sleeper, dummy;
+
+    sleeper.tv_sec = (time_t) (howLong / 1000);
+    sleeper.tv_nsec = (long) (howLong % 1000) * 1000000;
+
+    nanosleep(&sleeper, &dummy);
+}
 
 
 uint32_t readl(uint32_t addr) {
@@ -320,13 +317,13 @@ void sunxi_gpio_fsel(uint8_t pin, uint8_t mode) {
     regval = readl(phyaddr);
     if (wiringPiDebug)
         printf("read reg val: 0x%x offset:%d\n", regval, offset);
-    if (INPUT == mode) {
+    if (0 == mode) {
         regval &= ~(7 << offset);
         writel(regval, phyaddr);
         regval = readl(phyaddr);
         if (wiringPiDebug)
             printf("Input mode set over reg val: 0x%x\n", regval);
-    } else if (OUTPUT == mode) {
+    } else if (1 == mode) {
         regval &= ~(7 << offset);
         regval |= (1 << offset);
         if (wiringPiDebug)
@@ -336,7 +333,7 @@ void sunxi_gpio_fsel(uint8_t pin, uint8_t mode) {
         if (wiringPiDebug)
             printf("Out mode set over reg val: 0x%x\n", regval);
     }
-    else if (PWM_OUTPUT == mode) {
+    else if (2 == mode) {
         // set pin PWMx to pwm mode
         regval &= ~(7 << offset);
         regval |= (0x3 << offset);
@@ -385,23 +382,6 @@ int wiringPiFailure(int fatal, const char *message, ...) {
     exit(EXIT_FAILURE);
 
     return 0;
-}
-
-/*
- * getAlt:
- *	Returns the ALT bits for a given port. Only really of-use
- *	for the gpio readall command (I think)
- *********************************************************************************
- */
-
-int getAlt(int pin) {
-    int alt;
-
-    pin &= 63;
-
-    alt = sunxi_get_gpio_mode(pin);
-    return alt;
-
 }
 
 /*
@@ -457,16 +437,6 @@ void sunxi_pwm_set_range(unsigned int range) {
 void sunxi_pwm_set_clock(uint32_t divisor) {
     sunxi_pwm_set_clk(divisor);
     sunxi_pwm_set_enable(1);
-    return;
-}
-
-/*
- * gpioClockSet:
- *	Set the freuency on a GPIO clock pin
- *********************************************************************************
- */
-
-void gpioClockSet(int pin, int freq) {
     return;
 }
 
@@ -596,36 +566,6 @@ void sunxi_pwm_set_data(uint32_t data) {
 }
 
 /*
- * analogWrite:
- *	Write the analog value to the given Pin. 
- *	There is no on-board Pi analog hardware,
- *	so this needs to go to a new node.
- *********************************************************************************
- */
-
-void analogWrite(int pin, int value) {
-}
-
-/*
- * pwmToneWrite:
- *	Pi Specific.
- *      Output the given frequency on the Pi's PWM pin
- *********************************************************************************
- */
-
-void pwmToneWrite(int pin, int freq) {
-    int range;
-
-    if (freq == 0)
-        pwmWrite(pin, 0); // Off
-    else {
-        range = 600000 / freq;
-        pwmSetRange(range);
-        pwmWrite(pin, freq / 2);
-    }
-}
-
-/*
  * initialiseEpoch:
  *	Initialise our start-of-time variable to be the current unix
  *	time in milliseconds and microseconds.
@@ -638,21 +578,6 @@ static void initialiseEpoch(void) {
     gettimeofday(&tv, NULL);
     epochMilli = (uint64_t) tv.tv_sec * (uint64_t) 1000 + (uint64_t) (tv.tv_usec / 1000);
     epochMicro = (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) (tv.tv_usec);
-}
-
-/*
- * delay:
- *	Wait for some number of milliseconds
- *********************************************************************************
- */
-
-void delay(unsigned int howLong) {
-    struct timespec sleeper, dummy;
-
-    sleeper.tv_sec = (time_t) (howLong / 1000);
-    sleeper.tv_nsec = (long) (howLong % 1000) * 1000000;
-
-    nanosleep(&sleeper, &dummy);
 }
 
 /*
@@ -699,38 +624,6 @@ void sunxi_delayMicroseconds(unsigned int howLong) {
         sleeper.tv_nsec = (long) (uSecs * 1000L);
         nanosleep(&sleeper, NULL);
     }
-}
-
-/*
- * millis:
- *	Return a number of milliseconds as an unsigned int.
- *********************************************************************************
- */
-
-unsigned int millis(void) {
-    struct timeval tv;
-    uint64_t now;
-
-    gettimeofday(&tv, NULL);
-    now = (uint64_t) tv.tv_sec * (uint64_t) 1000 + (uint64_t) (tv.tv_usec / 1000);
-
-    return (uint32_t) (now - epochMilli);
-}
-
-/*
- * micros:
- *	Return a number of microseconds as an unsigned int.
- *********************************************************************************
- */
-
-unsigned int micros(void) {
-    struct timeval tv;
-    uint64_t now;
-
-    gettimeofday(&tv, NULL);
-    now = (uint64_t) tv.tv_sec * (uint64_t) 1000000 + (uint64_t) tv.tv_usec;
-
-    return (uint32_t) (now - epochMicro);
 }
 
 /*
@@ -792,7 +685,7 @@ int sunxi_i2c_begin (const int devId)
 	int rev ;
 	const char *device ;
 
-	rev = piBoardRev () ;
+	rev = 1;
 	if (rev == 1)
 		device = "/dev/i2c-0" ;
 	else if (rev == 2)
