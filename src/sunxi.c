@@ -91,11 +91,11 @@ static volatile uint32_t *timerIrqRaw;
 // The SPI bus parameters
 //	Variables as they need to be passed as pointers later on
 
-const static char       *spiDev0  = "/dev/spidev0.0" ;
-//const static char       *spiDev1  = "/dev/spidev0.1" ;
-const static uint8_t     spiMode  = 0 ;
-const static uint8_t     spiBPW   = 8 ;
-const static uint16_t    spiDelay = 0 ;
+const char     *spiDev0  = "/dev/spidev0.0" ;
+//const char     *spiDev1  = "/dev/spidev0.1" ;
+const uint8_t   spiMode  = 0 ;
+const uint8_t   spiBPW   = 8 ;
+const uint16_t  spiDelay = 0 ;
 
 
 static uint64_t epochMilli, epochMicro;
@@ -147,6 +147,54 @@ void delay(unsigned int howLong) {
 
     nanosleep(&sleeper, &dummy);
 }
+
+/*
+ * sunxi_delayMicroseconds:
+ *	This is somewhat intersting. It seems that on the Pi, a single call
+ *	to nanosleep takes some 80 to 130 microseconds anyway, so while
+ *	obeying the standards (may take longer), it's not always what we
+ *	want!
+ *
+ *	So what I'll do now is if the delay is less than 100uS we'll do it
+ *	in a hard loop, watching a built-in counter on the ARM chip. This is
+ *	somewhat sub-optimal in that it uses 100% CPU, something not an issue
+ *	in a microcontroller, but under a multi-tasking, multi-user OS, it's
+ *	wastefull, however we've no real choice )-:
+ *
+ *      Plan B: It seems all might not be well with that plan, so changing it
+ *      to use gettimeofday () and poll on that instead...
+ *********************************************************************************
+ */
+
+void delayMicrosecondsHard(unsigned int howLong) {
+    struct timeval tNow, tLong, tEnd;
+
+    gettimeofday(&tNow, NULL);
+    tLong.tv_sec = howLong / 1000000;
+    tLong.tv_usec = howLong % 1000000;
+    timeradd(&tNow, &tLong, &tEnd);
+
+    while (timercmp(&tNow, &tEnd, <))
+        gettimeofday(&tNow, NULL);
+}
+
+void sunxi_delayMicroseconds(unsigned int howLong) {
+    struct timespec sleeper;
+    unsigned int uSecs = howLong % 1000000;
+    unsigned int wSecs = howLong / 1000000;
+
+    /**/ if (howLong == 0)
+        return;
+    else if (howLong < 100)
+        delayMicrosecondsHard(howLong);
+    else {
+        sleeper.tv_sec = wSecs;
+        sleeper.tv_nsec = (long) (uSecs * 1000L);
+        nanosleep(&sleeper, NULL);
+    }
+}
+
+
 
 
 uint32_t readl(uint32_t addr) {
@@ -349,9 +397,9 @@ void sunxi_gpio_fsel(uint8_t pin, uint8_t mode) {
         writel(0, SUNXI_PWM_CH0_PERIOD);
 
         //set default M:S to 1/2
-        sunxi_pwm_set_period(1024);
+        //sunxi_pwm_set_period(1024);
         sunxi_pwm_set_act(512);
-        pwmSetMode(PWM_MODE_MS);
+        sunxi_pwm_mode(PWM_MODE_MS);
         sunxi_pwm_set_clk(PWM_CLK_DIV_120); //default clk:24M/120
         sunxi_delayMicroseconds(200);
     }
@@ -581,52 +629,6 @@ static void initialiseEpoch(void) {
 }
 
 /*
- * sunxi_delayMicroseconds:
- *	This is somewhat intersting. It seems that on the Pi, a single call
- *	to nanosleep takes some 80 to 130 microseconds anyway, so while
- *	obeying the standards (may take longer), it's not always what we
- *	want!
- *
- *	So what I'll do now is if the delay is less than 100uS we'll do it
- *	in a hard loop, watching a built-in counter on the ARM chip. This is
- *	somewhat sub-optimal in that it uses 100% CPU, something not an issue
- *	in a microcontroller, but under a multi-tasking, multi-user OS, it's
- *	wastefull, however we've no real choice )-:
- *
- *      Plan B: It seems all might not be well with that plan, so changing it
- *      to use gettimeofday () and poll on that instead...
- *********************************************************************************
- */
-
-void delayMicrosecondsHard(unsigned int howLong) {
-    struct timeval tNow, tLong, tEnd;
-
-    gettimeofday(&tNow, NULL);
-    tLong.tv_sec = howLong / 1000000;
-    tLong.tv_usec = howLong % 1000000;
-    timeradd(&tNow, &tLong, &tEnd);
-
-    while (timercmp(&tNow, &tEnd, <))
-        gettimeofday(&tNow, NULL);
-}
-
-void sunxi_delayMicroseconds(unsigned int howLong) {
-    struct timespec sleeper;
-    unsigned int uSecs = howLong % 1000000;
-    unsigned int wSecs = howLong / 1000000;
-
-    /**/ if (howLong == 0)
-        return;
-    else if (howLong < 100)
-        delayMicrosecondsHard(howLong);
-    else {
-        sleeper.tv_sec = wSecs;
-        sleeper.tv_nsec = (long) (uSecs * 1000L);
-        nanosleep(&sleeper, NULL);
-    }
-}
-
-/*
  * wiringPiSetup:
  *	Must be called once at the start of your program execution.
  *
@@ -680,6 +682,17 @@ int sunxi_init(int gpiomem) {
     return 0;
 }
 
+int wiringPiI2CSetupInterface (const char *device, int devId)
+{
+
+  if ((i2c_fd = open (device, O_RDWR)) < 0)
+    return wiringPiFailure (WPI_ALMOST, "Unable to open I2C device: %s\n", strerror (errno)) ;
+
+  if (ioctl (i2c_fd, I2C_SLAVE, devId) < 0)
+    return wiringPiFailure (WPI_ALMOST, "Unable to select I2C device: %s\n", strerror (errno)) ;
+  return 1;
+}
+
 int sunxi_i2c_begin (const int devId)
 {
 	int rev ;
@@ -696,16 +709,6 @@ int sunxi_i2c_begin (const int devId)
 	    device = "/dev/i2c-3" ;
 
 	return wiringPiI2CSetupInterface (device, devId) ;
-}
-
-int wiringPiI2CSetupInterface (const char *device, int devId)
-{
-
-  if ((i2c_fd = open (device, O_RDWR)) < 0)
-    return wiringPiFailure (WPI_ALMOST, "Unable to open I2C device: %s\n", strerror (errno)) ;
-
-  if (ioctl (i2c_fd, I2C_SLAVE, devId) < 0)
-    return wiringPiFailure (WPI_ALMOST, "Unable to select I2C device: %s\n", strerror (errno)) ;
 }
 
 void sunxi_i2c_setSlaveAddress(uint8_t addr)
@@ -746,7 +749,7 @@ uint8_t sunxi_i2c_read(char* buf, uint32_t len)
   uint8_t result = 0;
   uint32_t i = 0;
 
-  while (result >=0 & i<len)
+  while ((result >=0) & (i<len))
     {
         if (i2c_smbus_access (i2c_fd, I2C_SMBUS_READ, i2c_addr, I2C_SMBUS_BYTE_DATA, &data))
             result = -1;
@@ -766,7 +769,7 @@ uint8_t sunxi_i2c_write(char* buf, uint32_t len)
   uint8_t result = 0;
   uint32_t i = 0;
 
-  while (result >=0 & i<len)
+  while ((result >=0) & (i<len))
     {
         data.byte = buf[i];
         result = i2c_smbus_access (i2c_fd, I2C_SMBUS_WRITE, i2c_addr, I2C_SMBUS_BYTE_DATA, &data) ;
