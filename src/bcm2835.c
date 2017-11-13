@@ -21,6 +21,9 @@
 #define BCK2835_LIBRARY_BUILD
 #include "bcm2835.h"
 
+#define RPIO_EVENT_LOW	0x1
+#define RPIO_EVENT_HIGH	0x2
+
 /* This define enables a little test program (by default a blinking output on pin RPI_GPIO_PIN_11)
 // You can do some safe, non-destructive testing on any platform with:
 // gcc bcm2835.c -D BCM2835_TEST
@@ -288,6 +291,26 @@ void bcm2835_gpio_set_eds_multi(uint32_t mask)
     volatile uint32_t* paddr = bcm2835_gpio + BCM2835_GPEDS0/4;
     bcm2835_peri_write(paddr, mask);
 }
+void bcm2835_gpio_event_set(uint8_t pin, uint32_t direction)
+{
+   	/* Clear all possible trigger events. */
+   	bcm2835_gpio_clr_ren(pin);
+   	bcm2835_gpio_clr_fen(pin);
+	bcm2835_gpio_clr_hen(pin);
+	bcm2835_gpio_clr_len(pin);
+	bcm2835_gpio_clr_aren(pin);
+	bcm2835_gpio_clr_afen(pin);
+
+	/*
+	 * Add the requested events, using the synchronous rising and
+	 * falling edge detection bits.
+	 */
+	if (direction & RPIO_EVENT_HIGH)
+		bcm2835_gpio_ren(pin);
+
+	if (direction & RPIO_EVENT_LOW)
+		bcm2835_gpio_fen(pin);
+}
 
 /* Rising edge detect enable */
 void bcm2835_gpio_ren(uint8_t pin)
@@ -401,6 +424,24 @@ void bcm2835_gpio_pudclk(uint8_t pin, uint8_t on)
     uint8_t shift = pin % 32;
     bcm2835_peri_write(paddr, (on ? 1 : 0) << shift);
 }
+
+
+void bcm2835_pullUpDnControl(uint8_t pin, uint8_t pud)
+{
+	/*
+	 * We use our own version of bcm2835_gpio_set_pud as that uses
+	 * delayMicroseconds() which requires access to the timers and
+	 * therefore /dev/mem and root.  Our version is identical, except for
+	 * using usleep() instead.
+	 */
+	bcm2835_gpio_pud(pud);
+	usleep(10);
+	bcm2835_gpio_pudclk(pin, 1);
+	usleep(10);
+	bcm2835_gpio_pud(BCM2835_GPIO_PUD_OFF);
+	bcm2835_gpio_pudclk(pin, 0);
+}
+
 
 /* Read GPIO pad behaviour for groups of GPIOs */
 uint32_t bcm2835_gpio_pad(uint8_t group)

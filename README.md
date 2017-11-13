@@ -2,7 +2,7 @@ node-rpio
 =========
 
 This is a high performance node.js addon which provides access to the Raspberry
-Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
+Pi, Orange Pi and NanoPi NEO Plus2 GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
 [![Node.js version](https://img.shields.io/node/v/rpio.svg)](http://nodejs.org/download/)
 [![NPM version](https://badge.fury.io/js/rpio.svg)](http://badge.fury.io/js/rpio)
@@ -11,6 +11,8 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 ## Compatibility
 
 * Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, 3, Zero.
+* NanoPi Models: NEO, NEO2
+* Orange Pi
 * Node.js Versions: 0.8, 0.10, 0.12, 4, 5, 6, 7, 8
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
