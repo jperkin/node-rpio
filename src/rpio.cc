@@ -17,14 +17,17 @@
 #include <nan.h>
 #include <unistd.h>	/* usleep() */
 #include "bcm2835.h"
+#include "sunxi.h"
 
-#define RPIO_EVENT_LOW	0x1
-#define RPIO_EVENT_HIGH	0x2
+#define BCM2835	0x1
+#define SUNXI	0x2
 
 using namespace Nan;
 
+uint8_t type = 0;
+
 /*
- * GPIO function select.  Pass through all values supported by bcm2835.
+ * GPIO function select.  Pass through all values supported by wiringPi.
  */
 NAN_METHOD(gpio_function)
 {
@@ -34,7 +37,14 @@ NAN_METHOD(gpio_function)
 	    (info[1]->NumberValue() > 7))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_fsel(info[0]->NumberValue(), info[1]->NumberValue());
+    uint8_t pin = info[0]->NumberValue();
+    uint8_t mode = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+        bcm2835_gpio_fsel(pin, mode);
+    } else if (type == SUNXI) {
+    	sunxi_gpio_fsel(pin, mode);
+    }
 }
 
 /*
@@ -45,7 +55,16 @@ NAN_METHOD(gpio_read)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	info.GetReturnValue().Set(bcm2835_gpio_lev(info[0]->NumberValue()));
+    uint8_t pin = info[0]->NumberValue();
+    uint8_t value = 0;
+
+    if (type == BCM2835) {
+        value = bcm2835_gpio_lev(pin);
+    } else if (type == SUNXI) {
+        value = sunxi_gpio_lev(pin);
+    }
+
+	info.GetReturnValue().Set(value);
 }
 
 NAN_METHOD(gpio_readbuf)
@@ -61,8 +80,14 @@ NAN_METHOD(gpio_readbuf)
 
 	buf = node::Buffer::Data(info[1]->ToObject());
 
+    uint8_t pin = info[0]->NumberValue();
+
 	for (i = 0; i < info[2]->NumberValue(); i++)
-		buf[i] = bcm2835_gpio_lev(info[0]->NumberValue());
+        if (type == BCM2835) {
+            buf[i] = bcm2835_gpio_lev(pin);
+        } else if (type == SUNXI) {
+            buf[i] = sunxi_gpio_lev(pin);
+        }
 }
 
 NAN_METHOD(gpio_write)
@@ -72,7 +97,15 @@ NAN_METHOD(gpio_write)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_write(info[0]->NumberValue(), info[1]->NumberValue());
+    uint8_t pin = info[0]->NumberValue();
+    uint8_t on = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+        bcm2835_gpio_write(pin, on);
+    } else if (type == SUNXI) {
+        sunxi_gpio_write(pin, on);
+    }
+
 }
 
 NAN_METHOD(gpio_writebuf)
@@ -88,8 +121,14 @@ NAN_METHOD(gpio_writebuf)
 
 	buf = node::Buffer::Data(info[1]->ToObject());
 
+    uint8_t pin = info[0]->NumberValue();
+
 	for (i = 0; i < info[2]->NumberValue(); i++)
-		bcm2835_gpio_write(info[0]->NumberValue(), buf[i]);
+        if (type == BCM2835) {
+		    bcm2835_gpio_write(pin, buf[i]);
+        } else if (type == SUNXI) {
+		    sunxi_gpio_write(pin, buf[i]);
+        }
 }
 
 NAN_METHOD(gpio_pad_read)
@@ -97,7 +136,16 @@ NAN_METHOD(gpio_pad_read)
 	if ((info.Length() != 1) || !info[0]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	info.GetReturnValue().Set(bcm2835_gpio_pad(info[0]->NumberValue()));
+    uint8_t group = info[0]->NumberValue();
+    uint32_t state = 0;
+
+    if (type == BCM2835) {
+        state = bcm2835_gpio_pad(group);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support PAD control");
+    }
+
+	info.GetReturnValue().Set(state);
 }
 
 NAN_METHOD(gpio_pad_write)
@@ -107,7 +155,14 @@ NAN_METHOD(gpio_pad_write)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_set_pad(info[0]->NumberValue(), info[1]->NumberValue());
+    uint8_t group = info[0]->NumberValue();
+    uint32_t control = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+    	bcm2835_gpio_set_pad(group, control);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support PAD control");
+    }
 }
 
 NAN_METHOD(gpio_pud)
@@ -117,18 +172,14 @@ NAN_METHOD(gpio_pud)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	/*
-	 * We use our own version of bcm2835_gpio_set_pud as that uses
-	 * delayMicroseconds() which requires access to the timers and
-	 * therefore /dev/mem and root.  Our version is identical, except for
-	 * using usleep() instead.
-	 */
-	bcm2835_gpio_pud(info[1]->NumberValue());
-	usleep(10);
-	bcm2835_gpio_pudclk(info[0]->NumberValue(), 1);
-	usleep(10);
-	bcm2835_gpio_pud(BCM2835_GPIO_PUD_OFF);
-	bcm2835_gpio_pudclk(info[0]->NumberValue(), 0);
+    uint8_t pin = info[0]->NumberValue();
+    uint8_t pud = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+        bcm2835_pullUpDnControl(pin, pud);
+    } else if (type == SUNXI) {
+        sunxi_pullUpDnControl(pin, pud);
+    }
 }
 
 NAN_METHOD(gpio_event_set)
@@ -138,39 +189,42 @@ NAN_METHOD(gpio_event_set)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	/* Clear all possible trigger events. */
-	bcm2835_gpio_clr_ren(info[0]->NumberValue());
-	bcm2835_gpio_clr_fen(info[0]->NumberValue());
-	bcm2835_gpio_clr_hen(info[0]->NumberValue());
-	bcm2835_gpio_clr_len(info[0]->NumberValue());
-	bcm2835_gpio_clr_aren(info[0]->NumberValue());
-	bcm2835_gpio_clr_afen(info[0]->NumberValue());
+    uint8_t pin = info[0]->NumberValue();
+    uint32_t direction = info[1]->NumberValue();
 
-	/*
-	 * Add the requested events, using the synchronous rising and
-	 * falling edge detection bits.
-	 */
-	if ((uint32_t)info[1]->NumberValue() & RPIO_EVENT_HIGH)
-		bcm2835_gpio_ren(info[0]->NumberValue());
+    if (type == BCM2835) {
+        bcm2835_gpio_event_set(pin, direction);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support poll events");
+    }
 
-	if ((uint32_t)info[1]->NumberValue() & RPIO_EVENT_LOW)
-		bcm2835_gpio_fen(info[0]->NumberValue());
 }
 
 NAN_METHOD(gpio_event_poll)
 {
-	uint32_t rval = 0;
-
 	if ((info.Length() != 1) || !info[0]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
+
+    if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support poll events");
+    }
+
+	uint32_t rval = 0;
+
+    uint32_t mask = info[0]->NumberValue();
 
 	/*
 	 * Interrupts are not supported, so this merely reports that an event
 	 * happened in the time period since the last poll.  There is no way to
 	 * know which trigger caused the event.
 	 */
-	if ((rval = bcm2835_gpio_eds_multi(info[0]->NumberValue())))
-		bcm2835_gpio_set_eds_multi(rval);
+
+    if (type == BCM2835) {
+    	if ((rval = bcm2835_gpio_eds_multi(mask)))
+	    	bcm2835_gpio_set_eds_multi(rval);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support poll events");
+    }
 
 	info.GetReturnValue().Set(rval);
 }
@@ -180,8 +234,14 @@ NAN_METHOD(gpio_event_clear)
 	if ((info.Length() != 1) || !info[0]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_clr_fen(info[0]->NumberValue());
-	bcm2835_gpio_clr_ren(info[0]->NumberValue());
+    uint8_t pin = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+    	bcm2835_gpio_clr_fen(pin);
+    	bcm2835_gpio_clr_ren(pin);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support poll events");
+    }
 }
 
 /*
@@ -189,7 +249,11 @@ NAN_METHOD(gpio_event_clear)
  */
 NAN_METHOD(i2c_begin)
 {
-	bcm2835_i2c_begin();
+    if (type == BCM2835) {
+    	bcm2835_i2c_begin();
+    } else if (type == SUNXI) {
+        sunxi_i2c_begin(1);
+    }
 }
 
 NAN_METHOD(i2c_set_clock_divider)
@@ -197,7 +261,13 @@ NAN_METHOD(i2c_set_clock_divider)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_i2c_setClockDivider(info[0]->NumberValue());
+    uint16_t divider = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+    	bcm2835_i2c_setClockDivider(divider);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support i2c clock divider");
+    }
 }
 
 NAN_METHOD(i2c_set_baudrate)
@@ -205,7 +275,13 @@ NAN_METHOD(i2c_set_baudrate)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_i2c_set_baudrate(info[0]->NumberValue());
+    uint32_t baudrate = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+    	bcm2835_i2c_set_baudrate(baudrate);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support i2c baudrate");
+    }
 }
 
 NAN_METHOD(i2c_set_slave_address)
@@ -213,12 +289,22 @@ NAN_METHOD(i2c_set_slave_address)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_i2c_setSlaveAddress(info[0]->NumberValue());
+    uint8_t addr = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_i2c_setSlaveAddress(addr);
+    } else if (type == SUNXI) {
+	    sunxi_i2c_setSlaveAddress(addr);
+    }
 }
 
 NAN_METHOD(i2c_end)
 {
-	bcm2835_i2c_end();
+    if (type == BCM2835) {
+    	bcm2835_i2c_end();
+    } else if (type == SUNXI) {
+        // no implementation for sunxi
+    }
 }
 
 
@@ -230,15 +316,21 @@ NAN_METHOD(i2c_end)
  */
 NAN_METHOD(i2c_read)
 {
-	uint8_t rval;
+	uint8_t rval = 0;
 
 	if ((info.Length() != 2) ||
 	    (!info[0]->IsObject()) ||
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	rval = bcm2835_i2c_read(node::Buffer::Data(info[0]->ToObject()),
-				info[1]->NumberValue());
+    char* buf = node::Buffer::Data(info[0]->ToObject());
+    uint32_t len = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+    	rval = bcm2835_i2c_read(buf, len);
+    } else if (type == SUNXI) {
+    	rval = sunxi_i2c_read(buf, len);
+    }
 
 	info.GetReturnValue().Set(rval);
 }
@@ -252,8 +344,14 @@ NAN_METHOD(i2c_write)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	rval = bcm2835_i2c_write(node::Buffer::Data(info[0]->ToObject()),
-				 info[1]->NumberValue());
+    char* buf = node::Buffer::Data(info[0]->ToObject());
+    uint32_t len = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+        rval = bcm2835_i2c_write(buf, len);
+    } else if (type == SUNXI) {
+    	rval = sunxi_i2c_write(buf, len);
+    }
 
 	info.GetReturnValue().Set(rval);
 }
@@ -266,7 +364,12 @@ NAN_METHOD(pwm_set_clock)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_clock(info[0]->NumberValue());
+    uint32_t divisor = info[0]->NumberValue();
+    if (type == BCM2835) {
+    	bcm2835_pwm_set_clock(divisor);
+    } else if (type == SUNXI) {
+    	sunxi_pwm_set_clock(divisor);
+    }
 }
 
 NAN_METHOD(pwm_set_mode)
@@ -277,8 +380,15 @@ NAN_METHOD(pwm_set_mode)
 	    (!info[2]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_mode(info[0]->NumberValue(), info[1]->NumberValue(),
-			     info[2]->NumberValue());
+    uint8_t channel = info[0]->NumberValue();
+    uint8_t markspace = info[1]->NumberValue();
+    uint8_t enabled = info[2]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_pwm_set_mode(channel, markspace, enabled);
+    } else if (type == SUNXI) {
+    	sunxi_pwm_set_mode(channel, markspace, enabled);
+    }
 }
 
 NAN_METHOD(pwm_set_range)
@@ -288,7 +398,14 @@ NAN_METHOD(pwm_set_range)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_range(info[0]->NumberValue(), info[1]->NumberValue());
+    uint8_t channel = info[0]->NumberValue();
+    uint32_t range = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_pwm_set_range(channel, range);
+    } else if (type == SUNXI) {
+    	sunxi_pwm_set_range(range);
+    }
 }
 
 NAN_METHOD(pwm_set_data)
@@ -298,7 +415,14 @@ NAN_METHOD(pwm_set_data)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_data(info[0]->NumberValue(), info[1]->NumberValue());
+    uint8_t channel = info[0]->NumberValue();
+    uint32_t data = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+    	bcm2835_pwm_set_data(channel, data);
+    } else if (type == SUNXI) {
+    	sunxi_pwm_set_data(data);
+    }
 }
 
 /*
@@ -306,7 +430,11 @@ NAN_METHOD(pwm_set_data)
  */
 NAN_METHOD(spi_begin)
 {
-	bcm2835_spi_begin();
+    if (type == BCM2835) {
+    	bcm2835_spi_begin();
+    } else if (type == SUNXI) {
+    	sunxi_spi_begin();
+    }
 }
 
 NAN_METHOD(spi_chip_select)
@@ -314,7 +442,13 @@ NAN_METHOD(spi_chip_select)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_chipSelect(info[0]->NumberValue());
+    uint8_t cs = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_spi_chipSelect(cs);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support selecting chips");
+    }
 }
 
 NAN_METHOD(spi_set_cs_polarity)
@@ -324,8 +458,14 @@ NAN_METHOD(spi_set_cs_polarity)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_setChipSelectPolarity(info[0]->NumberValue(),
-					  info[1]->NumberValue());
+    uint8_t cs = info[0]->NumberValue();
+    uint8_t active = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_spi_setChipSelectPolarity(cs, active);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support polarity selections");
+    }
 }
 
 NAN_METHOD(spi_set_clock_divider)
@@ -333,7 +473,13 @@ NAN_METHOD(spi_set_clock_divider)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_setClockDivider(info[0]->NumberValue());
+    uint16_t divider = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_spi_setClockDivider(divider);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support clock divider");
+    }
 }
 
 NAN_METHOD(spi_set_data_mode)
@@ -341,7 +487,13 @@ NAN_METHOD(spi_set_data_mode)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_setDataMode(info[0]->NumberValue());
+    uint8_t mode = info[0]->NumberValue();
+
+    if (type == BCM2835) {
+    	bcm2835_spi_setDataMode(mode);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support changing mode");
+    }
 }
 
 NAN_METHOD(spi_transfer)
@@ -352,9 +504,15 @@ NAN_METHOD(spi_transfer)
 	    (!info[2]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_transfernb(node::Buffer::Data(info[0]->ToObject()),
-			       node::Buffer::Data(info[1]->ToObject()),
-			       info[2]->NumberValue());
+    char* tbuf = node::Buffer::Data(info[0]->ToObject());
+    char* rbuf = node::Buffer::Data(info[1]->ToObject());
+    uint32_t len = info[2]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_spi_transfernb(tbuf, rbuf, len);
+    } else if (type == SUNXI) {
+	    sunxi_spi_transfernb(tbuf, rbuf, len);
+    }
 }
 
 NAN_METHOD(spi_write)
@@ -364,13 +522,23 @@ NAN_METHOD(spi_write)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_writenb(node::Buffer::Data(info[0]->ToObject()),
-			    info[1]->NumberValue());
+    char* tbuf = node::Buffer::Data(info[0]->ToObject());
+    uint32_t len = info[1]->NumberValue();
+
+    if (type == BCM2835) {
+	    bcm2835_spi_writenb(tbuf, len);
+    } else if (type == SUNXI) {
+		return ThrowTypeError("SUNXI doesn't support writing only mode");
+    }
 }
 
 NAN_METHOD(spi_end)
 {
-	bcm2835_spi_end();
+    if (type == BCM2835) {
+    	bcm2835_spi_end();
+    } else if (type == SUNXI) {
+    	//not implemented yet
+    }
 }
 
 /*
@@ -381,13 +549,25 @@ NAN_METHOD(rpio_init)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	if (!bcm2835_init(info[0]->NumberValue()))
-		return ThrowError("Could not initialize bcm2835 GPIO library");
+    uint8_t gpiomem = info[0]->NumberValue();
+    if (gpiomem<2) {
+        type = BCM2835;
+        if (!bcm2835_init(gpiomem))
+		    return ThrowError("Could not initialize bcm2835 GPIO library");
+    } else {
+        type = SUNXI;
+        if (!sunxi_init(gpiomem-2))
+		    return ThrowError("Could not initialize sunxi GPIO library");
+    }
 }
 
 NAN_METHOD(rpio_close)
 {
-	bcm2835_close();
+    if (type == BCM2835) {
+    	bcm2835_close();
+    } else if (type == SUNXI) {
+    	//sunxi doesn't implement this
+    }
 }
 
 /*
