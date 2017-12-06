@@ -649,7 +649,7 @@ int sunxi_init(int gpiomem) {
         wiringPiReturnCodes = TRUE;
 
     if (geteuid() != 0)
-        (void)wiringPiFailure(WPI_FATAL, "sunxi_init: Must be root. (Did you forget sudo?)\n");
+        return wiringPiFailure(WPI_FATAL, "sunxi_init: Must be root. (Did you forget sudo?)\n");
 
     if (wiringPiDebug)
         printf("wiringPi: sunxi_init called\n");
@@ -679,7 +679,7 @@ int sunxi_init(int gpiomem) {
 
     initialiseEpoch();
 
-    return 0;
+    return 1;
 }
 
 int wiringPiI2CSetupInterface (const char *device, int devId)
