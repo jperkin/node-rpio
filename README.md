@@ -19,7 +19,7 @@ cause.
 
 ## Install
 
-Easily install the latest via npm:
+Install the latest using npm:
 
 ```console
 $ npm install rpio
@@ -54,7 +54,7 @@ Setup pin P11 / GPIO17 for read-only input and print its current value:
 
 ```js
 rpio.open(11, rpio.INPUT);
-console.log('Pin 11 is currently set ' + (rpio.read(11) ? 'high' : 'low'));
+console.log('Pin 11 is currently ' + (rpio.read(11) ? 'high' : 'low'));
 ```
 
 ### Blink an LED
@@ -63,14 +63,15 @@ Blink an LED attached to P12 / GPIO18 a few times:
 
 ```js
 /*
- * Set the initial state to low.  The state is set prior to the pin becoming
- * active, so is safe for devices which require a stable setup.
+ * Set the initial state to low.  The state is set prior to the pin
+ * being actived, so is safe for devices which require a stable setup.
  */
 rpio.open(12, rpio.OUTPUT, rpio.LOW);
 
 /*
- * The sleep functions block, but rarely in these simple programs does one care
- * about that.  Use a setInterval()/setTimeout() loop instead if it matters.
+ * The sleep functions block, but rarely in these simple programs does
+ * one care about that.  Use a setInterval()/setTimeout() loop instead
+ * if it matters.
  */
 for (var i = 0; i < 5; i++) {
         /* On for 1 second */
@@ -94,12 +95,12 @@ rpio.open(15, rpio.INPUT, rpio.PULL_DOWN);
 function pollcb(pin)
 {
         /*
-         * Interrupts aren't supported by the underlying hardware, so events
-         * may be missed during the 1ms poll window.  The best we can do is to
-         * print the current state after a event is detected.
+         * Interrupts aren't supported by the underlying hardware, so
+         * events may be missed during the 1ms poll window.  The best
+         * we can do is to print the current state after an event.
          */
         var state = rpio.read(pin) ? 'pressed' : 'released';
-        console.log('Button event on P%d (button currently %s)', pin, state);
+        console.log('Button event on P%d (currently %s)', pin, state);
 }
 
 rpio.poll(15, pollcb);
