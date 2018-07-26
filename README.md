@@ -11,7 +11,7 @@ Pi, Orange Pi and NanoPi NEO Plus2 GPIO interface, supporting regular GPIO as we
 ## Compatibility
 
 * Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, 3, Zero.
-* NanoPi Models: NEO, NEO2
+* NanoPi Models: NEO, NEO2, M1 PLUS
 * Orange Pi
 * Node.js Versions: 0.8, 0.10, 0.12, 4, 5, 6, 7, 8
 
