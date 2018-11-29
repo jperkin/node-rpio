@@ -5,12 +5,15 @@
   "homepage": "https://www.npmjs.com/package/rpio",
   "main": "./lib/rpio.js",
   "scripts": {
-    "test": "true",
+    "test": "tap test/mock.js --cov",
     "install": "node-gyp rebuild"
   },
   "dependencies": {
     "bindings": ">=1.3.0",
     "nan": ">=2.11.0"
+  },
+  "devDependencies": {
+    "tap": ">=12.1.0"
   },
   "engines": {
     "node": ">=0.8"
