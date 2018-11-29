@@ -92,24 +92,28 @@ for (var i = 0; i < 5; i++) {
 
 ### Poll a button switch for events
 
-Configure the internal pulldown resistor on P15 / GPIO22 and watch the pin for
-state changes from an attached button switch:
+Configure the internal pullup resistor on P15 / GPIO22 and watch the pin for
+pushes on an attached button switch:
 
 ```js
-rpio.open(15, rpio.INPUT, rpio.PULL_DOWN);
+rpio.open(15, rpio.INPUT, rpio.PULL_UP);
 
 function pollcb(pin)
 {
-        /*
-         * Interrupts aren't supported by the underlying hardware, so
-         * events may be missed during the 1ms poll window.  The best
-         * we can do is to print the current state after an event.
-         */
-        var state = rpio.read(pin) ? 'pressed' : 'released';
-        console.log('Button event on P%d (currently %s)', pin, state);
+	/*
+	 * Wait for a small period of time to avoid rapid changes which can't
+	 * all be caught with the 1ms polling frequency.  If the pin is no
+	 * longer down after the wait then ignore it.
+	 */
+	rpio.msleep(20);
+
+	if (rpio.read(pin))
+		return;
+
+        console.log('Button pressed on pin P%d', pin);
 }
 
-rpio.poll(15, pollcb);
+rpio.poll(15, pollcb, rpio.POLL_DOWN);
 ```
 
 A collection of example programs are also available in the
