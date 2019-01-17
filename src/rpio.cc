@@ -243,6 +243,22 @@ NAN_METHOD(i2c_read)
 	info.GetReturnValue().Set(rval);
 }
 
+NAN_METHOD(i2c_read_rs)
+{
+	uint8_t rval;
+
+	if ((info.Length() != 3) ||
+			(!info[0]->IsObject()) ||
+	    (!info[1]->IsObject()) ||
+	    (!info[2]->IsNumber()))
+		return ThrowTypeError("Incorrect arguments");
+
+	rval = bcm2835_i2c_read_register_rs(node::Buffer::Data(info[0]->ToObject()), node::Buffer::Data(info[1]->ToObject()),
+				info[2]->NumberValue());
+
+	info.GetReturnValue().Set(rval);
+}
+
 NAN_METHOD(i2c_write)
 {
 	uint8_t rval;
@@ -423,6 +439,7 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, i2c_set_slave_address);
 	NAN_EXPORT(target, i2c_end);
 	NAN_EXPORT(target, i2c_read);
+	NAN_EXPORT(target, i2c_read_rs);
 	NAN_EXPORT(target, i2c_write);
 	NAN_EXPORT(target, pwm_set_clock);
 	NAN_EXPORT(target, pwm_set_mode);
