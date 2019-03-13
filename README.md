@@ -114,7 +114,7 @@ function pollcb(pin)
         console.log('Button pressed on pin P%d', pin);
 }
 
-rpio.poll(15, pollcb, rpio.POLL_DOWN);
+rpio.poll(15, pollcb, rpio.POLL_LOW);
 ```
 
 A collection of example programs are also available in the
