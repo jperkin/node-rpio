@@ -31,10 +31,10 @@ NAN_METHOD(gpio_function)
 	if ((info.Length() != 2) ||
 	    !info[0]->IsNumber() ||
 	    !info[1]->IsNumber() ||
-	    (info[1]->NumberValue() > 7))
+	    (info[1]->NumberValue(Nan::GetCurrentContext()).FromJust() > 7))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_fsel(info[0]->NumberValue(), info[1]->NumberValue());
+	bcm2835_gpio_fsel(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 /*
@@ -45,7 +45,7 @@ NAN_METHOD(gpio_read)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	info.GetReturnValue().Set(bcm2835_gpio_lev(info[0]->NumberValue()));
+	info.GetReturnValue().Set(bcm2835_gpio_lev(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust()));
 }
 
 NAN_METHOD(gpio_readbuf)
@@ -59,10 +59,10 @@ NAN_METHOD(gpio_readbuf)
 	    !info[2]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	buf = node::Buffer::Data(info[1]->ToObject());
+	buf = node::Buffer::Data(info[1]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>()));
 
-	for (i = 0; i < info[2]->NumberValue(); i++)
-		buf[i] = bcm2835_gpio_lev(info[0]->NumberValue());
+	for (i = 0; i < info[2]->NumberValue(Nan::GetCurrentContext()).FromJust(); i++)
+		buf[i] = bcm2835_gpio_lev(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(gpio_write)
@@ -72,7 +72,7 @@ NAN_METHOD(gpio_write)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_write(info[0]->NumberValue(), info[1]->NumberValue());
+	bcm2835_gpio_write(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(gpio_writebuf)
@@ -86,10 +86,10 @@ NAN_METHOD(gpio_writebuf)
 	    !info[2]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	buf = node::Buffer::Data(info[1]->ToObject());
+	buf = node::Buffer::Data(info[1]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>()));
 
-	for (i = 0; i < info[2]->NumberValue(); i++)
-		bcm2835_gpio_write(info[0]->NumberValue(), buf[i]);
+	for (i = 0; i < info[2]->NumberValue(Nan::GetCurrentContext()).FromJust(); i++)
+		bcm2835_gpio_write(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), buf[i]);
 }
 
 NAN_METHOD(gpio_pad_read)
@@ -97,7 +97,7 @@ NAN_METHOD(gpio_pad_read)
 	if ((info.Length() != 1) || !info[0]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	info.GetReturnValue().Set(bcm2835_gpio_pad(info[0]->NumberValue()));
+	info.GetReturnValue().Set(bcm2835_gpio_pad(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust()));
 }
 
 NAN_METHOD(gpio_pad_write)
@@ -107,7 +107,7 @@ NAN_METHOD(gpio_pad_write)
 	    !info[1]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_set_pad(info[0]->NumberValue(), info[1]->NumberValue());
+	bcm2835_gpio_set_pad(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(gpio_pud)
@@ -123,12 +123,12 @@ NAN_METHOD(gpio_pud)
 	 * therefore /dev/mem and root.  Our version is identical, except for
 	 * using usleep() instead.
 	 */
-	bcm2835_gpio_pud(info[1]->NumberValue());
+	bcm2835_gpio_pud(info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 	usleep(10);
-	bcm2835_gpio_pudclk(info[0]->NumberValue(), 1);
+	bcm2835_gpio_pudclk(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), 1);
 	usleep(10);
 	bcm2835_gpio_pud(BCM2835_GPIO_PUD_OFF);
-	bcm2835_gpio_pudclk(info[0]->NumberValue(), 0);
+	bcm2835_gpio_pudclk(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), 0);
 }
 
 NAN_METHOD(gpio_event_set)
@@ -139,22 +139,22 @@ NAN_METHOD(gpio_event_set)
 		return ThrowTypeError("Incorrect arguments");
 
 	/* Clear all possible trigger events. */
-	bcm2835_gpio_clr_ren(info[0]->NumberValue());
-	bcm2835_gpio_clr_fen(info[0]->NumberValue());
-	bcm2835_gpio_clr_hen(info[0]->NumberValue());
-	bcm2835_gpio_clr_len(info[0]->NumberValue());
-	bcm2835_gpio_clr_aren(info[0]->NumberValue());
-	bcm2835_gpio_clr_afen(info[0]->NumberValue());
+	bcm2835_gpio_clr_ren(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+	bcm2835_gpio_clr_fen(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+	bcm2835_gpio_clr_hen(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+	bcm2835_gpio_clr_len(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+	bcm2835_gpio_clr_aren(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+	bcm2835_gpio_clr_afen(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 
 	/*
 	 * Add the requested events, using the synchronous rising and
 	 * falling edge detection bits.
 	 */
-	if ((uint32_t)info[1]->NumberValue() & RPIO_EVENT_HIGH)
-		bcm2835_gpio_ren(info[0]->NumberValue());
+	if ((uint32_t)info[1]->NumberValue(Nan::GetCurrentContext()).FromJust() & RPIO_EVENT_HIGH)
+		bcm2835_gpio_ren(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 
-	if ((uint32_t)info[1]->NumberValue() & RPIO_EVENT_LOW)
-		bcm2835_gpio_fen(info[0]->NumberValue());
+	if ((uint32_t)info[1]->NumberValue(Nan::GetCurrentContext()).FromJust() & RPIO_EVENT_LOW)
+		bcm2835_gpio_fen(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(gpio_event_poll)
@@ -169,7 +169,7 @@ NAN_METHOD(gpio_event_poll)
 	 * happened in the time period since the last poll.  There is no way to
 	 * know which trigger caused the event.
 	 */
-	if ((rval = bcm2835_gpio_eds_multi(info[0]->NumberValue())))
+	if ((rval = bcm2835_gpio_eds_multi(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust())))
 		bcm2835_gpio_set_eds_multi(rval);
 
 	info.GetReturnValue().Set(rval);
@@ -180,8 +180,8 @@ NAN_METHOD(gpio_event_clear)
 	if ((info.Length() != 1) || !info[0]->IsNumber())
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_gpio_clr_fen(info[0]->NumberValue());
-	bcm2835_gpio_clr_ren(info[0]->NumberValue());
+	bcm2835_gpio_clr_fen(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+	bcm2835_gpio_clr_ren(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 /*
@@ -197,7 +197,7 @@ NAN_METHOD(i2c_set_clock_divider)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_i2c_setClockDivider(info[0]->NumberValue());
+	bcm2835_i2c_setClockDivider(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(i2c_set_baudrate)
@@ -205,7 +205,7 @@ NAN_METHOD(i2c_set_baudrate)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_i2c_set_baudrate(info[0]->NumberValue());
+	bcm2835_i2c_set_baudrate(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(i2c_set_slave_address)
@@ -213,7 +213,7 @@ NAN_METHOD(i2c_set_slave_address)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_i2c_setSlaveAddress(info[0]->NumberValue());
+	bcm2835_i2c_setSlaveAddress(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(i2c_end)
@@ -237,8 +237,8 @@ NAN_METHOD(i2c_read)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	rval = bcm2835_i2c_read(node::Buffer::Data(info[0]->ToObject()),
-				info[1]->NumberValue());
+	rval = bcm2835_i2c_read(node::Buffer::Data(info[0]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>())),
+				info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 
 	info.GetReturnValue().Set(rval);
 }
@@ -252,8 +252,8 @@ NAN_METHOD(i2c_write)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	rval = bcm2835_i2c_write(node::Buffer::Data(info[0]->ToObject()),
-				 info[1]->NumberValue());
+	rval = bcm2835_i2c_write(node::Buffer::Data(info[0]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>())),
+				 info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 
 	info.GetReturnValue().Set(rval);
 }
@@ -266,7 +266,7 @@ NAN_METHOD(pwm_set_clock)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_clock(info[0]->NumberValue());
+	bcm2835_pwm_set_clock(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(pwm_set_mode)
@@ -277,8 +277,8 @@ NAN_METHOD(pwm_set_mode)
 	    (!info[2]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_mode(info[0]->NumberValue(), info[1]->NumberValue(),
-			     info[2]->NumberValue());
+	bcm2835_pwm_set_mode(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), info[1]->NumberValue(Nan::GetCurrentContext()).FromJust(),
+			     info[2]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(pwm_set_range)
@@ -288,7 +288,7 @@ NAN_METHOD(pwm_set_range)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_range(info[0]->NumberValue(), info[1]->NumberValue());
+	bcm2835_pwm_set_range(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(pwm_set_data)
@@ -298,7 +298,7 @@ NAN_METHOD(pwm_set_data)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_pwm_set_data(info[0]->NumberValue(), info[1]->NumberValue());
+	bcm2835_pwm_set_data(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(), info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 /*
@@ -314,7 +314,7 @@ NAN_METHOD(spi_chip_select)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_chipSelect(info[0]->NumberValue());
+	bcm2835_spi_chipSelect(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(spi_set_cs_polarity)
@@ -324,8 +324,8 @@ NAN_METHOD(spi_set_cs_polarity)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_setChipSelectPolarity(info[0]->NumberValue(),
-					  info[1]->NumberValue());
+	bcm2835_spi_setChipSelectPolarity(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust(),
+					  info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(spi_set_clock_divider)
@@ -333,7 +333,7 @@ NAN_METHOD(spi_set_clock_divider)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_setClockDivider(info[0]->NumberValue());
+	bcm2835_spi_setClockDivider(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(spi_set_data_mode)
@@ -341,7 +341,7 @@ NAN_METHOD(spi_set_data_mode)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_setDataMode(info[0]->NumberValue());
+	bcm2835_spi_setDataMode(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(spi_transfer)
@@ -352,9 +352,9 @@ NAN_METHOD(spi_transfer)
 	    (!info[2]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_transfernb(node::Buffer::Data(info[0]->ToObject()),
-			       node::Buffer::Data(info[1]->ToObject()),
-			       info[2]->NumberValue());
+	bcm2835_spi_transfernb(node::Buffer::Data(info[0]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>())),
+			       node::Buffer::Data(info[1]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>())),
+			       info[2]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(spi_write)
@@ -364,8 +364,8 @@ NAN_METHOD(spi_write)
 	    (!info[1]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	bcm2835_spi_writenb(node::Buffer::Data(info[0]->ToObject()),
-			    info[1]->NumberValue());
+	bcm2835_spi_writenb(node::Buffer::Data(info[0]->ToObject(Nan::GetCurrentContext()).FromMaybe(v8::Local<v8::Object>())),
+			    info[1]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_METHOD(spi_end)
@@ -381,7 +381,7 @@ NAN_METHOD(rpio_init)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	if (!bcm2835_init(info[0]->NumberValue()))
+	if (!bcm2835_init(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust()))
 		return ThrowError("Could not initialize bcm2835 GPIO library");
 }
 
@@ -398,7 +398,7 @@ NAN_METHOD(rpio_usleep)
 	if ((info.Length() != 1) || (!info[0]->IsNumber()))
 		return ThrowTypeError("Incorrect arguments");
 
-	usleep(info[0]->NumberValue());
+	usleep(info[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
 }
 
 NAN_MODULE_INIT(setup)
