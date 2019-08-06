@@ -15,7 +15,7 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 
 * Raspberry Pi Models: A, B (revisions 1.0 and 2.0), A+, B+, 2, 3, 3+,
   3 A+, 4B Compute Module 3, Zero.
-* Node.js Versions: 4, 5, 6, 7, 8, 9, 10, 11
+* Node.js Versions: 4, 5, 6, 7, 8, 9, 10, 11, 12
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
 support.  If you see compilation problems related to C++11, this is the likely
