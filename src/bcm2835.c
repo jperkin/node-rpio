@@ -1318,7 +1318,7 @@ int bcm2835_init(int gpiomem)
 
     if (debug)
     {
-        bcm2835_peripherals = (uint32_t *)BCM2835_PERI_BASE();
+        bcm2835_peripherals = (uint32_t *)BCM2835_PERI_BASE;
 
         bcm2835_pads = bcm2835_peripherals + BCM2835_GPIO_PADS / 4;
         bcm2835_clk = bcm2835_peripherals + BCM2835_CLOCK_BASE / 4;
