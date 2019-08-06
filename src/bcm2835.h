@@ -452,6 +452,8 @@
 /*! This means pin LOW, false, 0volts on a pin. */
 #define LOW  0x0
 
+//TODO: base clock of RPi4 if 375MHz
+
 /*! Speed of the core clock core_clk */
 #define BCM2835_CORE_CLK_HZ		250000000	/*!< 250 MHz */
 
