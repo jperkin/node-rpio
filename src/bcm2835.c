@@ -1318,7 +1318,7 @@ int bcm2835_init(int gpiomem)
 
     if (debug)
     {
-        bcm2835_peripherals = (uint32_t *)get_hwbase();
+        bcm2835_peripherals = (uint32_t *)BCM2835_PERI_BASE();
 
         bcm2835_pads = bcm2835_peripherals + BCM2835_GPIO_PADS / 4;
         bcm2835_clk = bcm2835_peripherals + BCM2835_CLOCK_BASE / 4;
@@ -1334,17 +1334,7 @@ int bcm2835_init(int gpiomem)
     /* Figure out the base and size of the peripheral address block
     // using the device-tree. Required for RPi2, optional for RPi 1
     */
-    if ((fp = fopen(BMC2835_RPI2_DT_FILENAME, "rb")))
-    {
-        unsigned char buf[4];
-        fseek(fp, BMC2835_RPI2_DT_PERI_BASE_ADDRESS_OFFSET, SEEK_SET);
-        if (fread(buf, 1, sizeof(buf), fp) == sizeof(buf))
-            bcm2835_peripherals_base = (uint32_t *)(buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0);
-        fseek(fp, BMC2835_RPI2_DT_PERI_SIZE_OFFSET, SEEK_SET);
-        if (fread(buf, 1, sizeof(buf), fp) == sizeof(buf))
-            bcm2835_peripherals_size = (buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0);
-        fclose(fp);
-    }
+    bcm2835_peripherals_base = get_hwbase();
     /* else we are prob on RPi 1 with BCM2835, and use the hardwired defaults */
 
     /* Now get ready to map the peripherals block */
