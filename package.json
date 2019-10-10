@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
   "homepage": "https://www.npmjs.com/package/rpio",
   "main": "./lib/rpio.js",
@@ -16,7 +16,7 @@
   },
   "devDependencies": {
     "eslint": "~6.5.0",
-    "tap": "~14.6.0"
+    "tap": "^13.0.0"
   },
   "engines": {
     "node": ">=0.8"
