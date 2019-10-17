@@ -32,6 +32,22 @@ Install the latest using npm:
 $ npm install rpio
 ```
 
+## Important System Requirements
+
+### Disable GPIO interrupts
+
+If running a newer Raspbian release, you will need to add the following line to
+`/boot/config.txt` and reboot:
+
+```
+dtoverlay=gpio-no-irq
+```
+
+Without this you may see crashes with newer kernels when trying to poll for pin
+changes.
+
+### Enable /dev/gpiomem access
+
 By default the module will use `/dev/gpiomem` when using simple GPIO access.
 To access this device, your user will need to be a member of the `gpio` group,
 and you may need to configure udev with the following rule (as root):
