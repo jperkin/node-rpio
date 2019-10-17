@@ -32,7 +32,7 @@ Install the latest using npm:
 $ npm install rpio
 ```
 
-## Important System Requirements
+## Important System Requirements
 
 ### Disable GPIO interrupts
 
