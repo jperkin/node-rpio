@@ -124,18 +124,7 @@ NAN_METHOD(gpio_pud)
 	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
 	uint32_t pud(Nan::To<uint32_t>(info[1]).FromJust());
 
-	/*
-	 * We use our own version of bcm2835_gpio_set_pud as that uses
-	 * delayMicroseconds() which requires access to the timers and
-	 * therefore /dev/mem and root.  Our version is identical, except for
-	 * using usleep() instead.
-	 */
-	bcm2835_gpio_pud(pud);
-	usleep(10);
-	bcm2835_gpio_pudclk(pin, 1);
-	usleep(10);
-	bcm2835_gpio_pud(BCM2835_GPIO_PUD_OFF);
-	bcm2835_gpio_pudclk(pin, 0);
+	bcm2835_gpio_set_pud(pin, pud);
 }
 
 NAN_METHOD(gpio_event_set)
