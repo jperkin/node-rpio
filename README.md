@@ -73,23 +73,23 @@ var rpio = require('rpio');
 
 ### Read a pin
 
-Setup pin P11 / GPIO17 for read-only input and print its current value:
+Setup pin P15 / GPIO22 for read-only input and print its current value:
 
 ```js
-rpio.open(11, rpio.INPUT);
-console.log('Pin 11 is currently ' + (rpio.read(11) ? 'high' : 'low'));
+rpio.open(15, rpio.INPUT);
+console.log('Pin 15 is currently ' + (rpio.read(15) ? 'high' : 'low'));
 ```
 
 ### Blink an LED
 
-Blink an LED attached to P12 / GPIO18 a few times:
+Blink an LED attached to P16 / GPIO23 a few times:
 
 ```js
 /*
  * Set the initial state to low.  The state is set prior to the pin
  * being actived, so is safe for devices which require a stable setup.
  */
-rpio.open(12, rpio.OUTPUT, rpio.LOW);
+rpio.open(16, rpio.OUTPUT, rpio.LOW);
 
 /*
  * The sleep functions block, but rarely in these simple programs does
@@ -98,11 +98,11 @@ rpio.open(12, rpio.OUTPUT, rpio.LOW);
  */
 for (var i = 0; i < 5; i++) {
         /* On for 1 second */
-        rpio.write(12, rpio.HIGH);
+        rpio.write(16, rpio.HIGH);
         rpio.sleep(1);
 
         /* Off for half a second (500ms) */
-        rpio.write(12, rpio.LOW);
+        rpio.write(16, rpio.LOW);
         rpio.msleep(500);
 }
 ```
@@ -338,14 +338,14 @@ value.
 Examples:
 
 ```js
-/* Configure P11 as input with the internal pulldown resistor enabled */
-rpio.open(11, rpio.INPUT, rpio.PULL_DOWN);
+/* Configure P15 as input with the internal pulldown resistor enabled */
+rpio.open(15, rpio.INPUT, rpio.PULL_DOWN);
 
-/* Configure P12 as output with the initiate state set high */
-rpio.open(12, rpio.OUTPUT, rpio.HIGH);
+/* Configure P16 as output with the initiate state set high */
+rpio.open(16, rpio.OUTPUT, rpio.HIGH);
 
-/* Configure P13 as output, but leave it in its initial undefined state */
-rpio.open(13, rpio.OUTPUT);
+/* Configure P18 as output, but leave it in its initial undefined state */
+rpio.open(18, rpio.OUTPUT);
 ```
 
 #### `rpio.mode(pin, mode)`
@@ -357,7 +357,7 @@ setup work done by `.open()`.
 Example:
 
 ```js
-rpio.mode(12, rpio.INPUT);      /* Switch P12 back to input mode */
+rpio.mode(16, rpio.INPUT);      /* Switch P16 back to input mode */
 ```
 
 #### `rpio.read(pin)`
@@ -367,7 +367,7 @@ Read the current value of `pin`, returning either `1` (high) or `0` (low).
 Example:
 
 ```js
-console.log('Pin 12 = %d', rpio.read(12));
+console.log('Pin 16 = %d', rpio.read(16));
 ```
 
 #### `rpio.readbuf(pin, buffer[, length])`
@@ -387,8 +387,8 @@ Example:
 ```js
 var buf = new Buffer(10000);
 
-/* Read the value of Pin 12 10,000 times in a row, storing the values in buf */
-rpio.readbuf(12, buf);
+/* Read the value of Pin 16 10,000 times in a row, storing the values in buf */
+rpio.readbuf(16, buf);
 ```
 
 #### `rpio.write(pin, value)`
@@ -486,8 +486,8 @@ Configure the pin's internal pullup or pulldown resistors, using the following
 Examples:
 
 ```js
-rpio.pud(11, rpio.PULL_UP);
-rpio.pud(12, rpio.PULL_DOWN);
+rpio.pud(15, rpio.PULL_UP);
+rpio.pud(16, rpio.PULL_DOWN);
 ```
 
 #### `rpio.poll(pin, cb[, direction])`
@@ -523,16 +523,16 @@ function nuke_button(pin)
 
 function regular_button(pin)
 {
-        /* Watch pin 11 forever. */
+        /* Watch pin 15 forever. */
         console.log('Button event on pin %d, is now %d', pin, rpio.read(pin));
 }
 
 /*
- * Pin 11 watches for both high and low transitions.  Pin 12 only watches for
+ * Pin 15 watches for both high and low transitions.  Pin 16 only watches for
  * high transitions (e.g. the nuke button is pushed).
  */
-rpio.poll(11, regular_button);
-rpio.poll(12, nuke_button, rpio.POLL_HIGH);
+rpio.poll(15, regular_button);
+rpio.poll(16, nuke_button, rpio.POLL_HIGH);
 ```
 
 #### `rpio.close(pin[, reset])`
@@ -550,26 +550,26 @@ will be left in after close:
 Examples:
 
 ```js
-rpio.close(11);
-rpio.close(12, rpio.PIN_RESET);
+rpio.close(15);
+rpio.close(16, rpio.PIN_RESET);
 rpio.close(13, rpio.PIN_PRESERVE);
 ```
 
 #### GPIO demo
 
-The code below continuously flashes an LED connected to pin 11 at 100Hz.
+The code below continuously flashes an LED connected to pin 15 at 100Hz.
 
 ```js
 var rpio = require('rpio');
 
-/* Configure P11 as an output pin, setting its initial state to low */
-rpio.open(11, rpio.OUTPUT, rpio.LOW);
+/* Configure P15 as an output pin, setting its initial state to low */
+rpio.open(15, rpio.OUTPUT, rpio.LOW);
 
 /* Set the pin high every 10ms, and low 5ms after each transition to high */
 setInterval(function() {
-        rpio.write(11, rpio.HIGH);
+        rpio.write(15, rpio.HIGH);
         setTimeout(function() {
-                rpio.write(11, rpio.LOW);
+                rpio.write(15, rpio.LOW);
         }, 5);
 }, 10);
 ```
