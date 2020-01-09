@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
   "homepage": "https://www.npmjs.com/package/rpio",
   "main": "./lib/rpio.js",
