@@ -13,15 +13,23 @@
 #include <stdio.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/mman.h>
+
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32__) && !defined(__NT__)
+	#include <mman.h>
+	#include <unistd.h>
+#else
+	#define __WINDOWS__
+#endif
+
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
+
 #include <sys/types.h>
 
 #define BCK2835_LIBRARY_BUILD
 #include "bcm2835.h"
 
+#ifndef __WINDOWS__
 /* This define enables a little test program (by default a blinking output on pin RPI_GPIO_PIN_11)
 // You can do some safe, non-destructive testing on any platform with:
 // gcc bcm2835.c -D BCM2835_TEST
@@ -1881,7 +1889,9 @@ int bcm2835_close(void)
     bcm2835_spi1 = MAP_FAILED;
     return 1; /* Success */
 }    
-
+#else //__WINDOWS__
+#include "bcm2835_win.c"
+#endif //__WINDOWS__
 #ifdef BCM2835_TEST
 /* this is a simple test program that prints out what it will do rather than 
 // actually doing it

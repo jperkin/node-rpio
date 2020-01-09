@@ -15,7 +15,11 @@
  */
 
 #include <nan.h>
-#include <unistd.h>	/* usleep() */
+#if !defined(WIN32) && !defined(_WIN32) && !defined(__WIN32__) && !defined(__NT__)
+	#include <unistd.h>
+#else
+	#define __WINDOWS__
+#endif
 #include "bcm2835.h"
 
 #define RPIO_EVENT_LOW	0x1
@@ -417,7 +421,9 @@ NAN_METHOD(rpio_usleep)
 
 	uint32_t microseconds(Nan::To<uint32_t>(info[0]).FromJust());
 
+#ifndef __WINDOWS__
 	usleep(microseconds);
+#endif
 }
 
 NAN_MODULE_INIT(setup)
