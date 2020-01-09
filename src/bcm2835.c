@@ -38,8 +38,8 @@
 /* Physical address and size of the peripherals block
 // May be overridden on RPi2
 */
-uint32_t *bcm2835_peripherals_base = (uint32_t *)BCM2835_PERI_BASE;
-uint32_t bcm2835_peripherals_size = BCM2835_PERI_SIZE;
+off_t bcm2835_peripherals_base = BCM2835_PERI_BASE;
+size_t bcm2835_peripherals_size = BCM2835_PERI_SIZE;
 
 /* Virtual memory address of the mapped peripherals block 
  */
@@ -1781,8 +1781,8 @@ int bcm2835_init(int gpiomem)
                     (buf[3] == 0x00) &&
                     ((base_address == BCM2835_PERI_BASE) || (base_address == BCM2835_RPI2_PERI_BASE) || (base_address == BCM2835_RPI4_PERI_BASE)))
             {
-                bcm2835_peripherals_base = (uint32_t *)base_address;
-                bcm2835_peripherals_size = peri_size;
+                bcm2835_peripherals_base = (off_t)base_address;
+                bcm2835_peripherals_size = (size_t)peri_size;
                 if( base_address == BCM2835_RPI4_PERI_BASE )
                 {
                     pud_type_rpi4 = 1;
@@ -1813,7 +1813,7 @@ int bcm2835_init(int gpiomem)
 	}
       
       /* Base of the peripherals block is mapped to VM */
-      bcm2835_peripherals = mapmem("gpio", bcm2835_peripherals_size, memfd, (off_t)bcm2835_peripherals_base);
+      bcm2835_peripherals = mapmem("gpio", bcm2835_peripherals_size, memfd, bcm2835_peripherals_base);
       if (bcm2835_peripherals == MAP_FAILED) goto exit;
       
       /* Now compute the base addresses of various peripherals, 
@@ -1846,7 +1846,7 @@ int bcm2835_init(int gpiomem)
       
       /* Base of the peripherals block is mapped to VM */
       bcm2835_peripherals_base = 0;
-      bcm2835_peripherals = mapmem("gpio", bcm2835_peripherals_size, memfd, (off_t)bcm2835_peripherals_base);
+      bcm2835_peripherals = mapmem("gpio", bcm2835_peripherals_size, memfd, bcm2835_peripherals_base);
       if (bcm2835_peripherals == MAP_FAILED) goto exit;
       bcm2835_gpio = bcm2835_peripherals;
       ok = 1;

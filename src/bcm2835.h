@@ -630,9 +630,9 @@
 /*! Physical address and size of the peripherals block
   May be overridden on RPi2
 */
-extern uint32_t *bcm2835_peripherals_base;
+extern off_t bcm2835_peripherals_base;
 /*! Size of the peripherals block to be mapped */
-extern uint32_t bcm2835_peripherals_size;
+extern size_t bcm2835_peripherals_size;
 
 /*! Virtual memory address of the mapped peripherals block */
 extern uint32_t *bcm2835_peripherals;
