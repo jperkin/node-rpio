@@ -1,2 +1,5 @@
+*.diff
+.nyc_output
 build
 node_modules
+npm-debug.log
