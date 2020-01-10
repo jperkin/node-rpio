@@ -1,21 +1,21 @@
 language: node_js
-node_js:
-  - "13"
-  - "12"
-  - "11"
-  - "10"
-  - "9"
-  - "8"
-  - "7"
-  - "6"
-  - "5"
-  - "4"
-  - "0.12"
-  - "0.11"
-  - "0.10"
 matrix:
   include:
     - os: linux
+      node_js:
+        - "13"
+        - "12"
+        - "11"
+        - "10"
+        - "9"
+        - "8"
+        - "7"
+        - "6"
+        - "5"
+        - "4"
+        - "0.12"
+        - "0.11"
+        - "0.10"
       env: CXX=g++-4.8
       addons:
        apt:
@@ -24,4 +24,8 @@ matrix:
          packages:
            - g++-4.8
     - os: osx
+      node_js:
+        - "13"
     - os: windows
+      node_js:
+        - "13"
