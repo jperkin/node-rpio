@@ -1,23 +1,80 @@
 language: node_js
+
 node_js:
-  - "13"
-  - "12"
-  - "11"
-  - "10"
-  - "9"
-  - "8"
-  - "7"
-  - "6"
-  - "5"
-  - "4"
-  - "0.12"
-  - "0.11"
-  - "0.10"
-env:
-  - CXX=g++-4.8
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - g++-4.8
+  - node
+
+matrix:
+  include:
+
+    #
+    # Build using whatever is default on all platforms:
+    #
+    #   https://docs.travis-ci.com/user/reference/linux/
+    #   https://docs.travis-ci.com/user/reference/osx/
+    #   https://docs.travis-ci.com/user/reference/windows/
+    #
+    # except on precise where 10 is the latest that will run (newer require
+    # a more modern glibc).
+    #
+    - name: 'Ubuntu 18.04 - Node.js LTS'
+      os: linux
+      dist: bionic
+    - name: 'Ubuntu 16.04 - Node.js LTS'
+      os: linux
+      dist: xenial
+    - name: 'Ubuntu 14.04 - Node.js LTS'
+      os: linux
+      dist: trusty
+    - name: 'Ubuntu 12.04 - Node.js 10'
+      os: linux
+      dist: precise
+      node_js: "10"
+      env:
+        - CXX=g++-4.8
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-4.8
+    - name: 'Ubuntu ARM64 - Node.js LTS'
+      os: linux
+      arch: arm64
+
+    #
+    # Don't build on all available macOS platforms, just newest and oldest.
+    #
+    - name: 'macOS 10.14 / Xcode 11.3 - Node.js LTS'
+      os: osx
+      osx_image: xcode11.3
+    - name: 'macOS 10.10 / Xcode 6.4 - Node.js LTS'
+      os: osx
+      osx_image: xcode6.4
+
+    - name: 'Windows Server 1803 - Node.js LTS'
+      os: windows
+
+    #
+    # Test latest node and historical LTS releases on Linux/amd64 only.
+    #
+    - name: 'Ubuntu - Node.js 13'
+      os: linux
+      node_js: "13"
+    - name: 'Ubuntu - Node.js 10'
+      os: linux
+      node_js: "10"
+    - name: 'Ubuntu - Node.js 8'
+      os: linux
+      node_js: "8"
+    - name: 'Ubuntu - Node.js 6'
+      os: linux
+      node_js: "6"
+    - name: 'Ubuntu - Node.js 4'
+      os: linux
+      node_js: "4"
+    - name: 'Ubuntu - Node.js 0.12'
+      os: linux
+      node_js: "0.12"
+    - name: 'Ubuntu - Node.js 0.10'
+      os: linux
+      node_js: "0.10"
