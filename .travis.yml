@@ -5,6 +5,7 @@ node_js:
 
 matrix:
   include:
+
     #
     # Build using whatever is default on all platforms:
     #
@@ -12,57 +13,75 @@ matrix:
     #   https://docs.travis-ci.com/user/reference/osx/
     #   https://docs.travis-ci.com/user/reference/windows/
     #
-    - os: linux
+    # except on precise where 10 is the latest that will run (newer require
+    # a more modern glibc).
+    #
+    - name: 'Ubuntu 18.04 - Node.js LTS'
+      os: linux
       dist: bionic
-    - os: linux
+    - name: 'Ubuntu 16.04 - Node.js LTS'
+      os: linux
       dist: xenial
-    - os: linux
+    - name: 'Ubuntu 14.04 - Node.js LTS'
+      os: linux
       dist: trusty
-    - os: linux
+    - name: 'Ubuntu 12.04 - Node.js 10'
+      os: linux
       dist: precise
       node_js: "10"
-    - os: linux
-      dist: precise
-      node_js: "8"
-    - os: linux
-      dist: precise
-      node_js: "6"
-    - os: linux
-      dist: precise
-      node_js: "4"
-    - os: linux
-      dist: precise
-      node_js: "0.12"
-    - os: linux
-      dist: precise
-      node_js: "0.10"
-    - os: linux
+      env:
+        - CXX=g++-4.8
+      addons:
+        apt:
+          sources:
+          - ubuntu-toolchain-r-test
+          packages:
+          - g++-4.8
+    - name: 'Ubuntu ARM64 - Node.js LTS'
+      os: linux
       arch: arm64
-    - os: osx
+    - name: 'macOS 10.14 / Xcode 11.3 - Node.js LTS'
+      os: osx
       osx_image: xcode11.3
-    - os: osx
+    - name: 'macOS 10.14 / Xcode 10.3 - Node.js LTS'
+      os: osx
       osx_image: xcode10.3
-    - os: osx
+    - name: 'macOS 10.13 / Xcode 9.4 - Node.js LTS'
+      os: osx
       osx_image: xcode9.4
-    - os: osx
+    - name: 'macOS 10.12 / Xcode 8.3 - Node.js LTS'
+      os: osx
       osx_image: xcode8.3
-    - os: osx
+    - name: 'macOS 10.11 / Xcode 7.3 - Node.js LTS'
+      os: osx
       osx_image: xcode7.3
-    - os: osx
+    - name: 'macOS 10.10 / Xcode 6.4 - Node.js LTS'
+      os: osx
       osx_image: xcode6.4
-    - os: windows
+    - name: 'Windows Server 1803 - Node.js LTS'
+      os: windows
+
+    #
     # Build latest node and historical LTS releases on Linux/amd64 only.
-    - os: linux
+    #
+    - name: 'Ubuntu - Node.js 13'
+      os: linux
       node_js: "13"
-    - os: linux
+    - name: 'Ubuntu - Node.js 10'
+      os: linux
       node_js: "10"
-    - os: linux
+    - name: 'Ubuntu - Node.js 8'
+      os: linux
       node_js: "8"
-    - os: linux
+    - name: 'Ubuntu - Node.js 6'
+      os: linux
       node_js: "6"
-    - os: linux
+    - name: 'Ubuntu - Node.js 4'
+      os: linux
       node_js: "4"
-    - os: linux
+    - name: 'Ubuntu - Node.js 0.12'
+      os: linux
       node_js: "0.12"
-    - os: linux
+    - name: 'Ubuntu - Node.js 0.10'
+      os: linux
       node_js: "0.10"
