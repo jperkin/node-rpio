@@ -1,15 +1,31 @@
 language: node_js
+
 matrix:
   include:
+    # Build the latest node on Linux/amd64 only.
     - os: linux
       node_js: "13"
+    # Build the latest LTS on all platforms
     - os: linux
+      arch: amd64
       node_js: "12"
     - os: linux
-      node_js: "0.10"
-    - os: linux
-      node_js: "0.8"
+      arch: arm64
+      node_js: "12"
     - os: osx
-      node_js: "13"
+      node_js: "12"
     - os: windows
-      node_js: "13"
+      node_js: "12"
+    # Build historical LTS releases on Linux/amd64 only.
+    - os: linux
+      node_js: "10"
+    - os: linux
+      node_js: "8"
+    - os: linux
+      node_js: "6"
+    - os: linux
+      node_js: "4"
+    - os: linux
+      node_js: "0.12"
+    - os: linux
+      node_js: "0.10"
