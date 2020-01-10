@@ -20,6 +20,22 @@ matrix:
       dist: trusty
     - os: linux
       dist: precise
+      node_js: "10"
+    - os: linux
+      dist: precise
+      node_js: "8"
+    - os: linux
+      dist: precise
+      node_js: "6"
+    - os: linux
+      dist: precise
+      node_js: "4"
+    - os: linux
+      dist: precise
+      node_js: "0.12"
+    - os: linux
+      dist: precise
+      node_js: "0.10"
     - os: linux
       arch: arm64
     - os: osx
