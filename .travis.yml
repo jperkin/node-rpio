@@ -2,21 +2,39 @@ language: node_js
 
 matrix:
   include:
-    # Build the latest node on Linux/amd64 only.
+    #
+    # Build using whatever is default on all platforms:
+    #
+    #   https://docs.travis-ci.com/user/reference/linux/
+    #   https://docs.travis-ci.com/user/reference/osx/
+    #   https://docs.travis-ci.com/user/reference/windows/
+    #
     - os: linux
-      node_js: "13"
-    # Build the latest LTS on all platforms
+      dist: bionic
     - os: linux
-      arch: amd64
-      node_js: "12"
+      dist: xenial
+    - os: linux
+      dist: trusty
+    - os: linux
+      dist: precise
     - os: linux
       arch: arm64
-      node_js: "12"
     - os: osx
-      node_js: "12"
+      osx_image: xcode11.3
+    - os: osx
+      osx_image: xcode10.3
+    - os: osx
+      osx_image: xcode9.4
+    - os: osx
+      osx_image: xcode8.3
+    - os: osx
+      osx_image: xcode7.3
+    - os: osx
+      osx_image: xcode6.4
     - os: windows
-      node_js: "12"
-    # Build historical LTS releases on Linux/amd64 only.
+    # Build latest node and historical LTS releases on Linux/amd64 only.
+    - os: linux
+      node_js: "13"
     - os: linux
       node_js: "10"
     - os: linux
