@@ -15,9 +15,16 @@
  */
 
 #include <nan.h>
-#if !defined(_WIN32)
+
+/*
+ * This addon only makes sense on Linux, given that the bcm2835 library
+ * requires /dev/{,gpio}mem support and /proc is used to determine hardware.
+ *
+ * We still build it as an empty addon on other platforms, however, so that
+ * mock mode works for application logic testing.
+ */
+#if defined(__linux__)
 #include <unistd.h>	/* usleep() */
-#endif
 #include "bcm2835.h"
 
 #define RPIO_EVENT_LOW	0x1
@@ -419,14 +426,7 @@ NAN_METHOD(rpio_usleep)
 
 	uint32_t microseconds(Nan::To<uint32_t>(info[0]).FromJust());
 
-	/*
-	 * Windows can only run in mock mode anyway, so just avoid sleeping
-	 * rather than trying to find a Windows function that supports
-	 * microseconds.
-	 */
-#if !defined(_WIN32)
 	usleep(microseconds);
-#endif
 }
 
 NAN_MODULE_INIT(setup)
@@ -465,5 +465,13 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, spi_write);
 	NAN_EXPORT(target, spi_end);
 }
+#else /* __linux__ */
+/*
+ * On non-Linux this is just a dummy addon.
+ */
+NAN_MODULE_INIT(setup)
+{
+}
+#endif
 
 NODE_MODULE(rpio, setup)
