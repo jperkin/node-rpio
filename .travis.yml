@@ -2,30 +2,14 @@ language: node_js
 matrix:
   include:
     - os: linux
-      node_js:
-        - "13"
-        - "12"
-        - "11"
-        - "10"
-        - "9"
-        - "8"
-        - "7"
-        - "6"
-        - "5"
-        - "4"
-        - "0.12"
-        - "0.11"
-        - "0.10"
-      env: CXX=g++-4.8
-      addons:
-       apt:
-         sources:
-           - ubuntu-toolchain-r-test
-         packages:
-           - g++-4.8
+      node_js: "13"
+    - os: linux
+      node_js: "12"
+    - os: linux
+      node_js: "0.10"
+    - os: linux
+      node_js: "0.8"
     - os: osx
-      node_js:
-        - "13"
+      node_js: "13"
     - os: windows
-      node_js:
-        - "13"
+      node_js: "13"
