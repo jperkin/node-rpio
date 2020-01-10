@@ -13,11 +13,15 @@ node_js:
   - "0.12"
   - "0.11"
   - "0.10"
-env:
-  - CXX=g++-4.8
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - g++-4.8
+matrix:
+  include:
+    - os: linux
+      env: CXX=g++-4.8
+      addons:
+       apt:
+         sources:
+           - ubuntu-toolchain-r-test
+         packages:
+           - g++-4.8
+    - os: osx
+    - os: windows
