@@ -15,7 +15,9 @@
  */
 
 #include <nan.h>
+#if !defined(_WIN32)
 #include <unistd.h>	/* usleep() */
+#endif
 #include "bcm2835.h"
 
 #define RPIO_EVENT_LOW	0x1
@@ -417,7 +419,14 @@ NAN_METHOD(rpio_usleep)
 
 	uint32_t microseconds(Nan::To<uint32_t>(info[0]).FromJust());
 
+	/*
+	 * Windows can only run in mock mode anyway, so just avoid sleeping
+	 * rather than trying to find a Windows function that supports
+	 * microseconds.
+	 */
+#if !defined(_WIN32)
 	usleep(microseconds);
+#endif
 }
 
 NAN_MODULE_INIT(setup)
