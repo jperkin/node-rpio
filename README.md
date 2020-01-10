@@ -34,6 +34,9 @@ $ npm install rpio
 
 ## Important System Requirements
 
+This module will only interface with hardware on Linux, but should compile on
+any other platform, where it will run in mock mode by default.
+
 ### Disable GPIO interrupts
 
 If running a newer Raspbian release, you will need to add the following line to
