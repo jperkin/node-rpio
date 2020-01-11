@@ -24,15 +24,21 @@
  * mock mode works for application logic testing.
  */
 #if defined(__linux__)
+
 #include <unistd.h>	/* usleep() */
 #include "bcm2835.h"
 
 #define RPIO_EVENT_LOW	0x1
 #define RPIO_EVENT_HIGH	0x2
 
-/* Avoid writing this monstrosity everywhere */
-#define RPIO_BUFFER_OBJECT(i)	\
+/* Avoid writing these monstrosities everywhere */
+#define IS_OBJ(i)	info[i]->IsObject()
+#define IS_U32(i)	info[i]->IsUint32()
+#define FROM_OBJ(i) \
 	node::Buffer::Data(Nan::To<v8::Object>(info[i]).ToLocalChecked())
+#define FROM_U32(i)	Nan::To<uint32_t>(info[i]).FromJust()
+#define NAN_ARGC	info.Length()
+#define NAN_RETURN	info.GetReturnValue().Set
 
 using namespace Nan;
 
@@ -41,11 +47,11 @@ using namespace Nan;
  */
 NAN_METHOD(gpio_function)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t mode(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t pin = FROM_U32(0);
+	uint32_t mode = FROM_U32(1);
 
 	bcm2835_gpio_fsel(pin, mode);
 }
@@ -55,23 +61,22 @@ NAN_METHOD(gpio_function)
  */
 NAN_METHOD(gpio_read)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t pin = FROM_U32(0);
 
-	info.GetReturnValue().Set(bcm2835_gpio_lev(pin));
+	NAN_RETURN(bcm2835_gpio_lev(pin));
 }
 
 NAN_METHOD(gpio_readbuf)
 {
-	if (info.Length() != 3 || !info[0]->IsUint32() ||
-	    !info[1]->IsObject() || !info[2]->IsUint32())
+	if (NAN_ARGC != 3 || !IS_U32(0) || !IS_OBJ(1) || !IS_U32(2))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
-	char *buf = RPIO_BUFFER_OBJECT(1);
-	uint32_t len(Nan::To<uint32_t>(info[2]).FromJust());
+	uint32_t pin = FROM_U32(0);
+	char *buf = FROM_OBJ(1);
+	uint32_t len = FROM_U32(2);
 
 	for (uint32_t i = 0; i < len; i++)
 		buf[i] = bcm2835_gpio_lev(pin);
@@ -79,26 +84,23 @@ NAN_METHOD(gpio_readbuf)
 
 NAN_METHOD(gpio_write)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t val(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t pin = FROM_U32(0);
+	uint32_t val = FROM_U32(1);
 
 	bcm2835_gpio_write(pin, val);
 }
 
 NAN_METHOD(gpio_writebuf)
 {
-	if (info.Length() != 3 ||
-	    !info[0]->IsUint32() ||
-	    !info[1]->IsObject() ||
-	    !info[2]->IsUint32())
+	if (NAN_ARGC != 3 || !IS_U32(0) || !IS_OBJ(1) || !IS_U32(2))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
-	char *buf = RPIO_BUFFER_OBJECT(1);
-	uint32_t len(Nan::To<uint32_t>(info[2]).FromJust());
+	uint32_t pin = FROM_U32(0);
+	char *buf = FROM_OBJ(1);
+	uint32_t len = FROM_U32(2);
 
 	for (uint32_t i = 0; i < len; i++)
 		bcm2835_gpio_write(pin, buf[i]);
@@ -106,43 +108,43 @@ NAN_METHOD(gpio_writebuf)
 
 NAN_METHOD(gpio_pad_read)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t group(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t group = FROM_U32(0);
 
-	info.GetReturnValue().Set(bcm2835_gpio_pad(group));
+	NAN_RETURN(bcm2835_gpio_pad(group));
 }
 
 NAN_METHOD(gpio_pad_write)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t group(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t control(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t group = FROM_U32(0);
+	uint32_t control = FROM_U32(1);
 
 	bcm2835_gpio_set_pad(group, control);
 }
 
 NAN_METHOD(gpio_pud)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t pud(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t pin = FROM_U32(0);
+	uint32_t pud = FROM_U32(1);
 
 	bcm2835_gpio_set_pud(pin, pud);
 }
 
 NAN_METHOD(gpio_event_set)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t direction(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t pin = FROM_U32(0);
+	uint32_t direction = FROM_U32(1);
 
 	/* Clear all possible trigger events. */
 	bcm2835_gpio_clr_ren(pin);
@@ -165,11 +167,11 @@ NAN_METHOD(gpio_event_set)
 
 NAN_METHOD(gpio_event_poll)
 {
-	if ((info.Length() != 1) || !info[0]->IsUint32())
+	if ((NAN_ARGC != 1) || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
 	uint32_t rval = 0;
-	uint32_t mask(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t mask = FROM_U32(0);
 
 	/*
 	 * Interrupts are not supported, so this merely reports that an event
@@ -179,15 +181,15 @@ NAN_METHOD(gpio_event_poll)
 	if ((rval = bcm2835_gpio_eds_multi(mask)))
 		bcm2835_gpio_set_eds_multi(rval);
 
-	info.GetReturnValue().Set(rval);
+	NAN_RETURN(rval);
 }
 
 NAN_METHOD(gpio_event_clear)
 {
-	if ((info.Length() != 1) || !info[0]->IsUint32())
+	if ((NAN_ARGC != 1) || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t pin(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t pin = FROM_U32(0);
 
 	bcm2835_gpio_clr_fen(pin);
 	bcm2835_gpio_clr_ren(pin);
@@ -203,30 +205,30 @@ NAN_METHOD(i2c_begin)
 
 NAN_METHOD(i2c_set_clock_divider)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t divider(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t divider = FROM_U32(0);
 
 	bcm2835_i2c_setClockDivider(divider);
 }
 
 NAN_METHOD(i2c_set_baudrate)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t baudrate(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t baudrate = FROM_U32(0);
 
 	bcm2835_i2c_set_baudrate(baudrate);
 }
 
 NAN_METHOD(i2c_set_slave_address)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t addr(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t addr = FROM_U32(0);
 
 	bcm2835_i2c_setSlaveAddress(addr);
 }
@@ -245,30 +247,24 @@ NAN_METHOD(i2c_end)
  */
 NAN_METHOD(i2c_read)
 {
-	if (info.Length() != 2 || !info[0]->IsObject() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint8_t rval;
-	char *buf = RPIO_BUFFER_OBJECT(0);
-	uint32_t len(Nan::To<uint32_t>(info[1]).FromJust());
+	char *buf = FROM_OBJ(0);
+	uint32_t len = FROM_U32(1);
 
-	rval = bcm2835_i2c_read(buf, len);
-
-	info.GetReturnValue().Set(rval);
+	NAN_RETURN(bcm2835_i2c_read(buf, len));
 }
 
 NAN_METHOD(i2c_write)
 {
-	if (info.Length() != 2 || !info[0]->IsObject() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint8_t rval;
-	char *buf = RPIO_BUFFER_OBJECT(0);
-	uint32_t len(Nan::To<uint32_t>(info[1]).FromJust());
+	char *buf = FROM_OBJ(0);
+	uint32_t len = FROM_U32(1);
 
-	rval = bcm2835_i2c_write(buf, len);
-
-	info.GetReturnValue().Set(rval);
+	NAN_RETURN(bcm2835_i2c_write(buf, len));
 }
 
 /*
@@ -276,45 +272,44 @@ NAN_METHOD(i2c_write)
  */
 NAN_METHOD(pwm_set_clock)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t divisor(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t divisor = FROM_U32(0);
 
 	bcm2835_pwm_set_clock(divisor);
 }
 
 NAN_METHOD(pwm_set_mode)
 {
-	if (info.Length() != 3 || !info[0]->IsUint32() ||
-	    !info[1]->IsUint32() || !info[2]->IsUint32())
+	if (NAN_ARGC != 3 || !IS_U32(0) || !IS_U32(1) || !IS_U32(2))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t channel(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t markspace(Nan::To<uint32_t>(info[1]).FromJust());
-	uint32_t enabled(Nan::To<uint32_t>(info[2]).FromJust());
+	uint32_t channel = FROM_U32(0);
+	uint32_t markspace = FROM_U32(1);
+	uint32_t enabled = FROM_U32(2);
 
 	bcm2835_pwm_set_mode(channel, markspace, enabled);
 }
 
 NAN_METHOD(pwm_set_range)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t channel(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t range(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t channel = FROM_U32(0);
+	uint32_t range = FROM_U32(1);
 
 	bcm2835_pwm_set_range(channel, range);
 }
 
 NAN_METHOD(pwm_set_data)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t channel(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t data(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t channel = FROM_U32(0);
+	uint32_t data = FROM_U32(1);
 
 	bcm2835_pwm_set_data(channel, data);
 }
@@ -329,65 +324,64 @@ NAN_METHOD(spi_begin)
 
 NAN_METHOD(spi_chip_select)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t cs(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t cs = FROM_U32(0);
 
 	bcm2835_spi_chipSelect(cs);
 }
 
 NAN_METHOD(spi_set_cs_polarity)
 {
-	if (info.Length() != 2 || !info[0]->IsUint32() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t cs(Nan::To<uint32_t>(info[0]).FromJust());
-	uint32_t active(Nan::To<uint32_t>(info[1]).FromJust());
+	uint32_t cs = FROM_U32(0);
+	uint32_t active = FROM_U32(1);
 
 	bcm2835_spi_setChipSelectPolarity(cs, active);
 }
 
 NAN_METHOD(spi_set_clock_divider)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t divider(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t divider = FROM_U32(0);
 
 	bcm2835_spi_setClockDivider(divider);
 }
 
 NAN_METHOD(spi_set_data_mode)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t mode(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t mode = FROM_U32(0);
 
 	bcm2835_spi_setDataMode(mode);
 }
 
 NAN_METHOD(spi_transfer)
 {
-	if (info.Length() != 3 || !info[0]->IsObject() ||
-	    !info[1]->IsObject() || !info[2]->IsUint32())
+	if (NAN_ARGC != 3 || !IS_OBJ(0) || !IS_OBJ(1) || !IS_U32(2))
 		return ThrowTypeError("Incorrect arguments");
 
-	char *tbuf = RPIO_BUFFER_OBJECT(0);
-	char *rbuf = RPIO_BUFFER_OBJECT(1);
-	uint32_t len(Nan::To<uint32_t>(info[2]).FromJust());
+	char *tbuf = FROM_OBJ(0);
+	char *rbuf = FROM_OBJ(1);
+	uint32_t len = FROM_U32(2);
 
 	bcm2835_spi_transfernb(tbuf, rbuf, len);
 }
 
 NAN_METHOD(spi_write)
 {
-	if (info.Length() != 2 || !info[0]->IsObject() || !info[1]->IsUint32())
+	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
 		return ThrowTypeError("Incorrect arguments");
 
-	char *buf = RPIO_BUFFER_OBJECT(0);
-	uint32_t len(Nan::To<uint32_t>(info[1]).FromJust());
+	char *buf = FROM_OBJ(0);
+	uint32_t len = FROM_U32(1);
 
 	bcm2835_spi_writenb(buf, len);
 }
@@ -402,10 +396,10 @@ NAN_METHOD(spi_end)
  */
 NAN_METHOD(rpio_init)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t gpiomem(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t gpiomem = FROM_U32(0);
 
 	if (!bcm2835_init(gpiomem))
 		return ThrowError("Could not initialize bcm2835 GPIO library");
@@ -421,10 +415,10 @@ NAN_METHOD(rpio_close)
  */
 NAN_METHOD(rpio_usleep)
 {
-	if (info.Length() != 1 || !info[0]->IsUint32())
+	if (NAN_ARGC != 1 || !IS_U32(0))
 		return ThrowTypeError("Incorrect arguments");
 
-	uint32_t microseconds(Nan::To<uint32_t>(info[0]).FromJust());
+	uint32_t microseconds = FROM_U32(0);
 
 	usleep(microseconds);
 }
@@ -465,13 +459,16 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, spi_write);
 	NAN_EXPORT(target, spi_end);
 }
+
 #else /* __linux__ */
+
 /*
  * On non-Linux this is just a dummy addon.
  */
 NAN_MODULE_INIT(setup)
 {
 }
+
 #endif
 
 NODE_MODULE(rpio, setup)
