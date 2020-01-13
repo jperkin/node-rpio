@@ -4,7 +4,7 @@
   
    Author: Mike McCauley
    Copyright (C) 2011-2013 Mike McCauley
-   $Id: bcm2835.h,v 1.25 2019/07/22 23:04:13 mikem Exp $
+   $Id: bcm2835.h,v 1.26 2020/01/11 05:07:13 mikem Exp mikem $
 */
 
 /*! \mainpage C library for Broadcom BCM 2835 as used in Raspberry Pi
@@ -26,7 +26,7 @@
   BCM 2835).
   
   The version of the package that this documentation refers to can be downloaded 
-  from http://www.airspayce.com/mikem/bcm2835/bcm2835-1.60.tar.gz
+  from http://www.airspayce.com/mikem/bcm2835/bcm2835-1.62.tar.gz
   You can find the latest version at http://www.airspayce.com/mikem/bcm2835
   
   Several example programs are provided.
@@ -542,6 +542,15 @@
   Applied patch from Mark Dootson for RPi 4 compatibility. Thanks Mark. Not tested here on RPi4, but others report it works.
   Tested as still working correctly on earlier RPi models. Tested with Debian Buster on earlier models
 
+  \version 1.61 2020-01-11
+  Fixed errors in the documentation for bcm2835_spi_write.
+  Fixes issue seen on Raspberry Pi 4 boards where 64-bit off_t is used by
+  default via -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64.  The offset was
+  being incorrectly converted, this way is clearer and fixes the problem. Contributed by Jonathan Perkin.
+
+  \version 1.62 2020-01-12
+  Fixed a problem that could cause compile failures with size_t and off_t
+
   \author  Mike McCauley (mikem@airspayce.com) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 */
 
@@ -552,7 +561,7 @@
 
 #include <stdint.h>
 
-#define BCM2835_VERSION 10060 /* Version 1.60 */
+#define BCM2835_VERSION 10062 /* Version 1.62 */
 
 /* RPi 2 is ARM v7, and has DMB instruction for memory barriers.
    Older RPis are ARM v6 and don't, so a coprocessor instruction must be used instead.
@@ -626,6 +635,7 @@
 /*! Base Address of the BSC1 registers */
 #define BCM2835_BSC1_BASE				0x804000
 
+#include <stdlib.h>
 
 /*! Physical address and size of the peripherals block
   May be overridden on RPi2
@@ -1700,11 +1710,10 @@ extern "C" {
     */
     extern void bcm2835_spi_writenb(const char* buf, uint32_t len);
 
-    /*! Transfers half-word to and from the currently selected SPI slave.
+    /*! Transfers half-word to the currently selected SPI slave.
       Asserts the currently selected CS pins (as previously set by bcm2835_spi_chipSelect)
       during the transfer.
       Clocks the 8 bit value out on MOSI, and simultaneously clocks in data from MISO.
-      Returns the read data byte from the slave.
       Uses polled transfer as per section 10.6.1 of the BCM 2835 ARM Peripherls manual
       \param[in] data The 8 bit data byte to write to MOSI
       \sa bcm2835_spi_writenb()
