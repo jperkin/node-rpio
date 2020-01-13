@@ -33,6 +33,26 @@ tap.test('rpio open', function (t) {
 	rpio.open(11, rpio.INPUT, rpio.PULL_DOWN);
 	rpio.open(12, rpio.OUTPUT, rpio.HIGH);
 	rpio.open(13, rpio.OUTPUT);
+	rpio.close(11);
+	rpio.close(12);
+	rpio.close(13);
+	t.end();
+});
+
+tap.test('rpio read', function (t) {
+	rpio.open(11, rpio.OUTPUT, rpio.HIGH);
+	rpio.open(12, rpio.OUTPUT);
+	tap.equal(rpio.read(11), rpio.HIGH);
+	tap.equal(rpio.read(12), rpio.LOW);
+	rpio.close(11);
+	rpio.close(12);
+	t.end();
+});
+
+tap.test('rpio write', function (t) {
+	rpio.open(11, rpio.OUTPUT);
+	tap.equal(rpio.write(11, rpio.HIGH), rpio.read(11));
+	rpio.close(11);
 	t.end();
 });
 
