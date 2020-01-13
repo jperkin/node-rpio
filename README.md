@@ -629,6 +629,24 @@ rpio.i2cWrite(txbuf);           /* Sends 4 bytes */
 rpio.i2cRead(rxbuf, 16);        /* Reads 16 bytes */
 ```
 
+Two specialised functions are available for reading and writing to devices
+that require a repeated start.  For now see the bcm2835 documentation for more
+information on these.
+
+```js
+/*
+ * Read len bytes from register into buf after issuing a repeated start,
+ * required by e.g. MPL3115A2 pressure and temperature sensor.
+ */
+rpio.i2cReadRegisterRestart(reg, rbuf, rlen);
+
+/*
+ * Write cmdlen commands from cmdbuf to device before issuing a repeated
+ * start and reading rlen bytes into rbuf, for e.g. MLX90620.
+ */
+rpio.i2cWriteReadRestart(cmdbuf, cmdlen, rbuf, rlen);
+```
+
 Finally, turn off the i²c interface and return the pins to GPIO.
 
 ```js

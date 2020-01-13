@@ -256,6 +256,31 @@ NAN_METHOD(i2c_read)
 	NAN_RETURN(bcm2835_i2c_read(buf, len));
 }
 
+NAN_METHOD(i2c_read_register_rs)
+{
+	if (NAN_ARGC != 3 || !IS_OBJ(0) || !IS_OBJ(1) || !IS_U32(2))
+		return ThrowTypeError("Incorrect arguments");
+
+	char *reg = FROM_OBJ(0);
+	char *buf = FROM_OBJ(1);
+	uint32_t len = FROM_U32(2);
+
+	NAN_RETURN(bcm2835_i2c_read_register_rs(reg, buf, len));
+}
+
+NAN_METHOD(i2c_write_read_rs)
+{
+	if (NAN_ARGC != 4 || !IS_OBJ(0) || !IS_U32(1) || !IS_OBJ(2) || !IS_U32(3))
+		return ThrowTypeError("Incorrect arguments");
+
+	char *cmds = FROM_OBJ(0);
+	uint32_t cmdlen = FROM_U32(1);
+	char *buf = FROM_OBJ(2);
+	uint32_t buflen = FROM_U32(3);
+
+	NAN_RETURN(bcm2835_i2c_write_read_rs(cmds, cmdlen, buf, buflen));
+}
+
 NAN_METHOD(i2c_write)
 {
 	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
