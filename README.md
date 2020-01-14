@@ -10,6 +10,7 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 [![Build Status](https://travis-ci.org/jperkin/node-rpio.svg?branch=master)](https://travis-ci.org/jperkin/node-rpio)
 [![License: ISC](https://img.shields.io/badge/License-ISC-yellow.svg)](https://opensource.org/licenses/ISC)
 [![License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-yellow.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
+[![Donations](https://img.shields.io/liberapay/receives/jperkin.svg)](https://liberapay.com/jperkin/)
 
 ## Compatibility
 
