@@ -40,6 +40,30 @@
 #define NAN_ARGC	info.Length()
 #define NAN_RETURN	info.GetReturnValue().Set
 
+#define ASSERT_ARGC1(t0)						\
+	do {								\
+		if (NAN_ARGC != 1 || !t0(0))				\
+			return ThrowTypeError("Incorrect arguments");	\
+	} while (0)
+
+#define ASSERT_ARGC2(t0, t1)						\
+	do {								\
+		if (NAN_ARGC != 2 || !t0(0) || !t1(1))			\
+			return ThrowTypeError("Incorrect arguments");	\
+	} while (0)
+
+#define ASSERT_ARGC3(t0, t1, t2)					\
+	do {								\
+		if (NAN_ARGC != 3 || !t0(0) || !t1(1) || !t2(2))	\
+			return ThrowTypeError("Incorrect arguments");	\
+	} while (0)
+
+#define ASSERT_ARGC4(t0, t1, t2, t3)					\
+	do {								\
+		if (NAN_ARGC != 4 || !t0(0) || !t1(1) || !t2(2) || !t3(3)) \
+			return ThrowTypeError("Incorrect arguments");	\
+	} while (0)
+
 using namespace Nan;
 
 /*
@@ -47,8 +71,7 @@ using namespace Nan;
  */
 NAN_METHOD(gpio_function)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	uint32_t mode = FROM_U32(1);
@@ -61,8 +84,7 @@ NAN_METHOD(gpio_function)
  */
 NAN_METHOD(gpio_read)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 
@@ -71,8 +93,7 @@ NAN_METHOD(gpio_read)
 
 NAN_METHOD(gpio_readbuf)
 {
-	if (NAN_ARGC != 3 || !IS_U32(0) || !IS_OBJ(1) || !IS_U32(2))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC3(IS_U32, IS_OBJ, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	char *buf = FROM_OBJ(1);
@@ -84,8 +105,7 @@ NAN_METHOD(gpio_readbuf)
 
 NAN_METHOD(gpio_write)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	uint32_t val = FROM_U32(1);
@@ -97,8 +117,7 @@ NAN_METHOD(gpio_write)
 
 NAN_METHOD(gpio_writebuf)
 {
-	if (NAN_ARGC != 3 || !IS_U32(0) || !IS_OBJ(1) || !IS_U32(2))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC3(IS_U32, IS_OBJ, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	char *buf = FROM_OBJ(1);
@@ -110,8 +129,7 @@ NAN_METHOD(gpio_writebuf)
 
 NAN_METHOD(gpio_pad_read)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t group = FROM_U32(0);
 
@@ -120,8 +138,7 @@ NAN_METHOD(gpio_pad_read)
 
 NAN_METHOD(gpio_pad_write)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t group = FROM_U32(0);
 	uint32_t control = FROM_U32(1);
@@ -131,8 +148,7 @@ NAN_METHOD(gpio_pad_write)
 
 NAN_METHOD(gpio_pud)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	uint32_t pud = FROM_U32(1);
@@ -142,8 +158,7 @@ NAN_METHOD(gpio_pud)
 
 NAN_METHOD(gpio_event_set)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	uint32_t direction = FROM_U32(1);
@@ -169,8 +184,7 @@ NAN_METHOD(gpio_event_set)
 
 NAN_METHOD(gpio_event_poll)
 {
-	if ((NAN_ARGC != 1) || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t rval = 0;
 	uint32_t mask = FROM_U32(0);
@@ -188,8 +202,7 @@ NAN_METHOD(gpio_event_poll)
 
 NAN_METHOD(gpio_event_clear)
 {
-	if ((NAN_ARGC != 1) || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 
@@ -207,8 +220,7 @@ NAN_METHOD(i2c_begin)
 
 NAN_METHOD(i2c_set_clock_divider)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t divider = FROM_U32(0);
 
@@ -217,8 +229,7 @@ NAN_METHOD(i2c_set_clock_divider)
 
 NAN_METHOD(i2c_set_baudrate)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t baudrate = FROM_U32(0);
 
@@ -227,8 +238,7 @@ NAN_METHOD(i2c_set_baudrate)
 
 NAN_METHOD(i2c_set_slave_address)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t addr = FROM_U32(0);
 
@@ -249,8 +259,7 @@ NAN_METHOD(i2c_end)
  */
 NAN_METHOD(i2c_read)
 {
-	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_OBJ, IS_U32);
 
 	char *buf = FROM_OBJ(0);
 	uint32_t len = FROM_U32(1);
@@ -260,8 +269,7 @@ NAN_METHOD(i2c_read)
 
 NAN_METHOD(i2c_read_register_rs)
 {
-	if (NAN_ARGC != 3 || !IS_OBJ(0) || !IS_OBJ(1) || !IS_U32(2))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC3(IS_OBJ, IS_OBJ, IS_U32);
 
 	char *reg = FROM_OBJ(0);
 	char *buf = FROM_OBJ(1);
@@ -272,8 +280,7 @@ NAN_METHOD(i2c_read_register_rs)
 
 NAN_METHOD(i2c_write_read_rs)
 {
-	if (NAN_ARGC != 4 || !IS_OBJ(0) || !IS_U32(1) || !IS_OBJ(2) || !IS_U32(3))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC4(IS_OBJ, IS_U32, IS_OBJ, IS_U32);
 
 	char *cmds = FROM_OBJ(0);
 	uint32_t cmdlen = FROM_U32(1);
@@ -285,8 +292,7 @@ NAN_METHOD(i2c_write_read_rs)
 
 NAN_METHOD(i2c_write)
 {
-	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_OBJ, IS_U32);
 
 	char *buf = FROM_OBJ(0);
 	uint32_t len = FROM_U32(1);
@@ -299,8 +305,7 @@ NAN_METHOD(i2c_write)
  */
 NAN_METHOD(pwm_set_clock)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t divisor = FROM_U32(0);
 
@@ -309,8 +314,7 @@ NAN_METHOD(pwm_set_clock)
 
 NAN_METHOD(pwm_set_mode)
 {
-	if (NAN_ARGC != 3 || !IS_U32(0) || !IS_U32(1) || !IS_U32(2))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC3(IS_U32, IS_U32, IS_U32);
 
 	uint32_t channel = FROM_U32(0);
 	uint32_t markspace = FROM_U32(1);
@@ -321,8 +325,7 @@ NAN_METHOD(pwm_set_mode)
 
 NAN_METHOD(pwm_set_range)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t channel = FROM_U32(0);
 	uint32_t range = FROM_U32(1);
@@ -332,8 +335,7 @@ NAN_METHOD(pwm_set_range)
 
 NAN_METHOD(pwm_set_data)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t channel = FROM_U32(0);
 	uint32_t data = FROM_U32(1);
@@ -351,8 +353,7 @@ NAN_METHOD(spi_begin)
 
 NAN_METHOD(spi_chip_select)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t cs = FROM_U32(0);
 
@@ -361,8 +362,7 @@ NAN_METHOD(spi_chip_select)
 
 NAN_METHOD(spi_set_cs_polarity)
 {
-	if (NAN_ARGC != 2 || !IS_U32(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t cs = FROM_U32(0);
 	uint32_t active = FROM_U32(1);
@@ -372,8 +372,7 @@ NAN_METHOD(spi_set_cs_polarity)
 
 NAN_METHOD(spi_set_clock_divider)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t divider = FROM_U32(0);
 
@@ -382,8 +381,7 @@ NAN_METHOD(spi_set_clock_divider)
 
 NAN_METHOD(spi_set_data_mode)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t mode = FROM_U32(0);
 
@@ -392,8 +390,7 @@ NAN_METHOD(spi_set_data_mode)
 
 NAN_METHOD(spi_transfer)
 {
-	if (NAN_ARGC != 3 || !IS_OBJ(0) || !IS_OBJ(1) || !IS_U32(2))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC3(IS_OBJ, IS_OBJ, IS_U32);
 
 	char *tbuf = FROM_OBJ(0);
 	char *rbuf = FROM_OBJ(1);
@@ -404,8 +401,7 @@ NAN_METHOD(spi_transfer)
 
 NAN_METHOD(spi_write)
 {
-	if (NAN_ARGC != 2 || !IS_OBJ(0) || !IS_U32(1))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC2(IS_OBJ, IS_U32);
 
 	char *buf = FROM_OBJ(0);
 	uint32_t len = FROM_U32(1);
@@ -423,8 +419,7 @@ NAN_METHOD(spi_end)
  */
 NAN_METHOD(rpio_init)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t gpiomem = FROM_U32(0);
 
@@ -442,8 +437,7 @@ NAN_METHOD(rpio_close)
  */
 NAN_METHOD(rpio_usleep)
 {
-	if (NAN_ARGC != 1 || !IS_U32(0))
-		return ThrowTypeError("Incorrect arguments");
+	ASSERT_ARGC1(IS_U32);
 
 	uint32_t microseconds = FROM_U32(0);
 
