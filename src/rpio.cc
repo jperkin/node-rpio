@@ -91,6 +91,8 @@ NAN_METHOD(gpio_write)
 	uint32_t val = FROM_U32(1);
 
 	bcm2835_gpio_write(pin, val);
+
+	NAN_RETURN(val);
 }
 
 NAN_METHOD(gpio_writebuf)
