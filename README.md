@@ -352,7 +352,7 @@ rpio.open(16, rpio.OUTPUT, rpio.HIGH);
 rpio.open(18, rpio.OUTPUT);
 ```
 
-#### `rpio.mode(pin, mode)`
+#### `rpio.mode(pin, mode[, option])`
 
 Switch a pin that has already been opened in one mode to a different mode.
 This is provided primarily for performance reasons, as it avoids some of the
@@ -361,7 +361,11 @@ setup work done by `.open()`.
 Example:
 
 ```js
-rpio.mode(16, rpio.INPUT);      /* Switch P16 back to input mode */
+/* Switch P15 to output mode */
+rpio.mode(15, rpio.OUTPUT);
+
+/* Switch P16 to input mode with the internal pullup resistor enabled */
+rpio.mode(16, rpio.INPUT, rpio.PULL_UP);
 ```
 
 #### `rpio.read(pin)`
