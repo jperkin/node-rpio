@@ -220,6 +220,7 @@ var options = {
         gpiomem: true,          /* Use /dev/gpiomem */
         mapping: 'physical',    /* Use the P1-P40 numbering scheme */
         mock: undefined,        /* Emulate specific hardware in mock mode */
+        close_on_exit: true,    /* On node process exit automatically close rpio */
 }
 ```
 
@@ -319,6 +320,40 @@ rpio.init({mock: 'raspi-3'});
 
 /* Override default warn handler to avoid mock warnings */
 rpio.on('warn', function() {});
+```
+
+##### `close_on_exit`
+
+Rpio automatically cleans up and closes all pins when the node process exits. If
+you need to hook exit yourself and do cleanup with rpio set `close_on_exit: false`
+to allow you to perform any cleanup. Make sure you call `rpio.exit()` in your exit
+hook.
+
+Example:
+
+```js
+rpio.init({close_on_exit: false});    
+
+process.on('exit', () => {
+  /* Any custom cleanup using rpio */      
+  rpio.exit();
+});
+```
+
+#### `rpio.exit()`
+
+Shuts down the rpio library.  By default this will happen automatically. This method
+is provided to allow manual shutdown when using `close_on_exit: false`.
+
+Example:
+
+```js
+rpio.init({close_on_exit: false});    
+
+process.on('exit', () => {
+  /* Any custom cleanup using rpio */      
+  rpio.exit();
+});
 ```
 
 #### `rpio.open(pin, mode[, option])`
