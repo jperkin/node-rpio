@@ -467,6 +467,8 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, i2c_end);
 	NAN_EXPORT(target, i2c_read);
 	NAN_EXPORT(target, i2c_write);
+	NAN_EXPORT(target, i2c_write_read_rs);
+	NAN_EXPORT(target, i2c_read_register_rs);
 	NAN_EXPORT(target, pwm_set_clock);
 	NAN_EXPORT(target, pwm_set_mode);
 	NAN_EXPORT(target, pwm_set_range);
