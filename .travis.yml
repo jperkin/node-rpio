@@ -47,9 +47,9 @@ matrix:
     - name: 'macOS 10.14 / Xcode 11.3 - Node.js LTS'
       os: osx
       osx_image: xcode11.3
-    - name: 'macOS 10.10 / Xcode 6.4 - Node.js LTS'
+    - name: 'macOS 10.11 / Xcode 7.3 - Node.js LTS'
       os: osx
-      osx_image: xcode6.4
+      osx_image: xcode7.3
 
     - name: 'Windows Server 1803 - Node.js LTS'
       os: windows
@@ -57,9 +57,9 @@ matrix:
     #
     # Test latest node and historical LTS releases on Linux/amd64 only.
     #
-    - name: 'Ubuntu - Node.js 15'
-      os: linux
-      node_js: "15"
+    #- name: 'Ubuntu - Node.js 15'
+    #  os: linux
+    #  node_js: "15"
     - name: 'Ubuntu - Node.js 14'
       os: linux
       node_js: "14"
