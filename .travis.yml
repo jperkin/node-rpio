@@ -57,9 +57,15 @@ matrix:
     #
     # Test latest node and historical LTS releases on Linux/amd64 only.
     #
-    - name: 'Ubuntu - Node.js 13'
+    - name: 'Ubuntu - Node.js 15'
       os: linux
-      node_js: "13"
+      node_js: "15"
+    - name: 'Ubuntu - Node.js 14'
+      os: linux
+      node_js: "14"
+    - name: 'Ubuntu - Node.js 12'
+      os: linux
+      node_js: "12"
     - name: 'Ubuntu - Node.js 10'
       os: linux
       node_js: "10"
