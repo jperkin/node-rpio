@@ -9,7 +9,8 @@
       "conditions": [
         ["OS == 'linux'", {
           "sources": [
-            "src/bcm2835.c"
+            "src/bcm2835.c",
+            "src/sunxi.c"
 	  ]
 	}]
       ]

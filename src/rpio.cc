@@ -27,6 +27,7 @@
 
 #include <unistd.h>	/* usleep() */
 #include "bcm2835.h"
+#include "sunxi.h"
 
 #define RPIO_EVENT_LOW	0x1
 #define RPIO_EVENT_HIGH	0x2
@@ -66,6 +67,11 @@
 
 using namespace Nan;
 
+#define RPIO_SOC_BCM2835	0x0
+#define RPIO_SOC_SUNXI		0x1
+
+uint32_t soctype = RPIO_SOC_BCM2835;
+
 /*
  * GPIO function select.
  */
@@ -76,7 +82,14 @@ NAN_METHOD(gpio_function)
 	uint32_t pin = FROM_U32(0);
 	uint32_t mode = FROM_U32(1);
 
-	bcm2835_gpio_fsel(pin, mode);
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		bcm2835_gpio_fsel(pin, mode);
+		break;
+	case RPIO_SOC_SUNXI:
+		sunxi_gpio_fsel(pin, mode);
+		break;
+	}
 }
 
 /*
@@ -88,7 +101,14 @@ NAN_METHOD(gpio_read)
 
 	uint32_t pin = FROM_U32(0);
 
-	NAN_RETURN(bcm2835_gpio_lev(pin));
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		NAN_RETURN(bcm2835_gpio_lev(pin));
+		break;
+	case RPIO_SOC_SUNXI:
+		NAN_RETURN(sunxi_gpio_lev(pin));
+		break;
+	}
 }
 
 NAN_METHOD(gpio_readbuf)
@@ -99,8 +119,16 @@ NAN_METHOD(gpio_readbuf)
 	char *buf = FROM_OBJ(1);
 	uint32_t len = FROM_U32(2);
 
-	for (uint32_t i = 0; i < len; i++)
-		buf[i] = bcm2835_gpio_lev(pin);
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		for (uint32_t i = 0; i < len; i++)
+			buf[i] = bcm2835_gpio_lev(pin);
+		break;
+	case RPIO_SOC_SUNXI:
+		for (uint32_t i = 0; i < len; i++)
+			buf[i] = sunxi_gpio_lev(pin);
+		break;
+	}
 }
 
 NAN_METHOD(gpio_write)
@@ -110,7 +138,14 @@ NAN_METHOD(gpio_write)
 	uint32_t pin = FROM_U32(0);
 	uint32_t val = FROM_U32(1);
 
-	bcm2835_gpio_write(pin, val);
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		bcm2835_gpio_write(pin, val);
+		break;
+	case RPIO_SOC_SUNXI:
+		sunxi_gpio_write(pin, val);
+		break;
+	}
 
 	NAN_RETURN(val);
 }
@@ -123,8 +158,16 @@ NAN_METHOD(gpio_writebuf)
 	char *buf = FROM_OBJ(1);
 	uint32_t len = FROM_U32(2);
 
-	for (uint32_t i = 0; i < len; i++)
-		bcm2835_gpio_write(pin, buf[i]);
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		for (uint32_t i = 0; i < len; i++)
+			bcm2835_gpio_write(pin, buf[i]);
+		break;
+	case RPIO_SOC_SUNXI:
+		for (uint32_t i = 0; i < len; i++)
+			sunxi_gpio_write(pin, buf[i]);
+		break;
+	}
 }
 
 NAN_METHOD(gpio_pad_read)
@@ -419,12 +462,21 @@ NAN_METHOD(spi_end)
  */
 NAN_METHOD(rpio_init)
 {
-	ASSERT_ARGC1(IS_U32);
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
-	uint32_t gpiomem = FROM_U32(0);
+	soctype = FROM_U32(0);
+	uint32_t gpiomem = FROM_U32(1);
 
-	if (!bcm2835_init(gpiomem))
-		return ThrowError("Could not initialize bcm2835 GPIO library");
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		if (!bcm2835_init(gpiomem))
+			return ThrowError("Could not initialize bcm2835");
+		break;
+	case RPIO_SOC_SUNXI:
+		if (!sunxi_init(gpiomem))
+			return ThrowError("Could not initialize sunxi");
+		break;
+	}
 }
 
 NAN_METHOD(rpio_close)
