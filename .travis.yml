@@ -16,6 +16,9 @@ matrix:
     # except on precise where 10 is the latest that will run (newer require
     # a more modern glibc).
     #
+    - name: 'Ubuntu 20.04 - Node.js LTS'
+      os: linux
+      dist: focal
     - name: 'Ubuntu 18.04 - Node.js LTS'
       os: linux
       dist: bionic
