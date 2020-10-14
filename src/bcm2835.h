@@ -26,7 +26,7 @@
   BCM 2835).
   
   The version of the package that this documentation refers to can be downloaded 
-  from http://www.airspayce.com/mikem/bcm2835/bcm2835-1.62.tar.gz
+  from http://www.airspayce.com/mikem/bcm2835/bcm2835-1.68.tar.gz
   You can find the latest version at http://www.airspayce.com/mikem/bcm2835
   
   Several example programs are provided.
@@ -71,6 +71,34 @@
   successful, will only permit GPIO operations. In particular,
   bcm2835_spi_begin() and bcm2835_i2c_begin() will return false and all
   other non-gpio operations may fail silently or crash.
+
+  If your program needs acccess to /dev/mem but not as root, 
+  and if you have the libcap-dev package installed on the target, 
+  you can compile this library to use
+  libcap2 so that it tests whether the exceutable has the cap_sys_rawio capability, and therefore
+  permission to access /dev/mem.
+  To enable this ability, uncomment the #define BCM2835_HAVE_LIBCAP in bcm2835.h or 
+  -DBCM2835_HAVE_LIBCAP on your compiler command line.
+  After your program has been compiled:
+  \code
+  sudo setcap cap_sys_rawio+ep *myprogname*
+  \endcode
+  You also need to do these steps on the host once, to support libcap and not-root read/write access 
+  to /dev/mem:
+  1. Install libcap support
+  \code
+    sudo apt-get install libcap2 libcap-dev
+  2. Add current user to kmem group
+  \code
+    sudo adduser $USER kmem
+  \endcode
+  3. Allow write access to /dev/mem by members of kmem group
+  \code
+    echo 'SUBSYSTEM=="mem", KERNEL=="mem", GROUP="kmem", MODE="0660"' | sudo tee /etc/udev/rules.d/98-mem.rules
+  \endcode
+  \code
+    sudo reboot
+  \endcode
 
   \par Installation
   
@@ -308,14 +336,14 @@
   utility, spincl, is licensed under Open Source GNU GPLv3 by iP Solutions (http://ipsolutionscorp.com), as a 
   free download with source included: http://ipsolutionscorp.com/raspberry-pi-spi-utility/
   
-  \par Open Source Licensing GPL V2
+  \par Open Source Licensing GPL V3
   
   This is the appropriate option if you want to share the source code of your
   application with everyone you distribute it to, and you also want to give them
   the right to share who uses it. If you wish to use this software under Open
   Source Licensing, you must contribute all your source code to the open source
-  community in accordance with the GPL Version 2 when your application is
-  distributed. See https://www.gnu.org/licenses/gpl-2.0.html and COPYING
+  community in accordance with the GPL Version 3 when your application is
+  distributed. See https://www.gnu.org/licenses/gpl-3.0.html and COPYING
   
   \par Commercial Licensing
 
@@ -551,6 +579,22 @@
   \version 1.62 2020-01-12
   Fixed a problem that could cause compile failures with size_t and off_t
 
+  \version 1.63 2020-03-07
+  Added bcm2835_aux_spi_transfer, contributed by Michivi
+  Adopted GPL V3 licensing
+
+  \version 1.64 2020-04-11
+  Fixed error in definitions of BCM2835_AUX_SPI_STAT_TX_LVL and BCM2835_AUX_SPI_STAT_RX_LVL. Patch from 
+  Eric Marzec. Thanks.
+
+  \version 1.65, 1.66 2020-04-16
+  Added support for use of capability  cap_sys_rawio to determine if access to /dev/mem is available for non-root
+  users. Contributed by Doug McFadyen.
+
+  \version 1.67, 1.66 2020-06-11
+  Fixed an error in bcm2835_i2c_read() where the status byte was not correctly updated with BCM2835_BSC_S_DONE
+  Reported by Zihan. Thanks.
+
   \author  Mike McCauley (mikem@airspayce.com) DO NOT CONTACT THE AUTHOR DIRECTLY: USE THE LISTS
 */
 
@@ -561,11 +605,16 @@
 
 #include <stdint.h>
 
-#define BCM2835_VERSION 10062 /* Version 1.62 */
+#define BCM2835_VERSION 10066 /* Version 1.66 */
+
+// Define this if you want to use libcap2 to determine if you have the cap_sys_rawio capability
+// and therefore the capability of opening /dev/mem, even if you are not root.
+// See the comments above in the documentation for 'Running As Root'
+//#define BCM2835_HAVE_LIBCAP
 
 /* RPi 2 is ARM v7, and has DMB instruction for memory barriers.
    Older RPis are ARM v6 and don't, so a coprocessor instruction must be used instead.
-   However, not all versions of gcc in all distros support the dmb assembler instruction even on conmpatible processors.
+   However, not all versions of gcc in all distros support the dmb assembler instruction even on compatible processors.
    This test is so any ARMv7 or higher processors with suitable GCC will use DMB.
 */
 #if __ARM_ARCH >= 7
@@ -965,8 +1014,8 @@ typedef enum
 #define BCM2835_AUX_SPI_CNTL1_MSBF_IN	0x00000002  /*!< */
 #define BCM2835_AUX_SPI_CNTL1_KEEP_IN	0x00000001  /*!< */
 
-#define BCM2835_AUX_SPI_STAT_TX_LVL	0xFF000000  /*!< */
-#define BCM2835_AUX_SPI_STAT_RX_LVL	0x00FF0000  /*!< */
+#define BCM2835_AUX_SPI_STAT_TX_LVL	0xF0000000  /*!< */
+#define BCM2835_AUX_SPI_STAT_RX_LVL	0x00F00000  /*!< */
 #define BCM2835_AUX_SPI_STAT_TX_FULL	0x00000400  /*!< */
 #define BCM2835_AUX_SPI_STAT_TX_EMPTY	0x00000200  /*!< */
 #define BCM2835_AUX_SPI_STAT_RX_FULL	0x00000100  /*!< */
@@ -1083,7 +1132,7 @@ typedef enum
    GPIO register offsets from BCM2835_BSC*_BASE.
    Offsets into the BSC Peripheral block in bytes per 3.1 BSC Register Map
 */
-#define BCM2835_BSC_C 							0x0000 /*!< BSC Master Control */
+#define BCM2835_BSC_C 			0x0000 /*!< BSC Master Control */
 #define BCM2835_BSC_S 			0x0004 /*!< BSC Master Status */
 #define BCM2835_BSC_DLEN		0x0008 /*!< BSC Master Data Length */
 #define BCM2835_BSC_A 			0x000c /*!< BSC Master Slave Address */
@@ -1721,14 +1770,14 @@ extern "C" {
     extern void bcm2835_spi_write(uint16_t data);
 
     /*! Start AUX SPI operations.
-      Forces RPi AUX SPI pins P1-36 (MOSI), P1-38 (MISO), P1-40 (CLK) and P1-36 (CE2)
+      Forces RPi AUX SPI pins P1-38 (MOSI), P1-38 (MISO), P1-40 (CLK) and P1-36 (CE2)
       to alternate function ALT4, which enables those pins for SPI interface.
       \return 1 if successful, 0 otherwise (perhaps because you are not running as root)
     */
     extern int bcm2835_aux_spi_begin(void);
 
     /*! End AUX SPI operations.
-       SPI1 pins P1-36 (MOSI), P1-38 (MISO), P1-40 (CLK) and P1-36 (CE2)
+       SPI1 pins P1-38 (MOSI), P1-38 (MISO), P1-40 (CLK) and P1-36 (CE2)
        are returned to their default INPUT behaviour.
      */
     extern void bcm2835_aux_spi_end(void);
@@ -1745,10 +1794,10 @@ extern "C" {
      */
     extern uint16_t bcm2835_aux_spi_CalcClockDivider(uint32_t speed_hz);
 
-    /*! Transfers half-word to and from the AUX SPI slave.
+    /*! Transfers half-word to the AUX SPI slave.
       Asserts the currently selected CS pins during the transfer.
       \param[in] data The 8 bit data byte to write to MOSI
-      \return The 8 bit byte simultaneously read from  MISO
+      \return The 16 bit byte simultaneously read from  MISO
       \sa bcm2835_spi_transfern()
     */
     extern void bcm2835_aux_spi_write(uint16_t data);
@@ -1764,7 +1813,7 @@ extern "C" {
       using bcm2835_aux_spi_transfernb.
       The returned data from the slave replaces the transmitted data in the buffer.
       \param[in,out] buf Buffer of bytes to send. Received bytes will replace the contents
-      \param[in] len Number of bytes int eh buffer, and the number of bytes to send/received
+      \param[in] len Number of bytes in the buffer, and the number of bytes to send/received
       \sa bcm2835_aux_spi_transfer()
     */
     extern void bcm2835_aux_spi_transfern(char *buf, uint32_t len);
@@ -1779,6 +1828,15 @@ extern "C" {
     */
     extern void bcm2835_aux_spi_transfernb(const char *tbuf, char *rbuf, uint32_t len);
 
+    /*! Transfers one byte to and from the AUX SPI slave.
+      Clocks the 8 bit value out on MOSI, and simultaneously clocks in data from MISO. 
+      Returns the read data byte from the slave.
+      \param[in] value The 8 bit data byte to write to MOSI
+      \return The 8 bit byte simultaneously read from MISO
+      \sa bcm2835_aux_spi_transfern()
+    */
+    extern uint8_t bcm2835_aux_spi_transfer(uint8_t value);
+    
     /*! @} */
 
     /*! \defgroup i2c I2C access
