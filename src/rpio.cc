@@ -119,8 +119,9 @@ NAN_METHOD(gpio_readbuf)
 	char *buf = FROM_OBJ(1);
 	uint32_t len = FROM_U32(2);
 
-	for (uint32_t i = 0; i < len; i++)
+	for (uint32_t i = 0; i < len; i++) {
 		buf[i] = bcm2835_gpio_lev(pin);
+	}
 }
 
 NAN_METHOD(gpio_write)
@@ -143,8 +144,9 @@ NAN_METHOD(gpio_writebuf)
 	char *buf = FROM_OBJ(1);
 	uint32_t len = FROM_U32(2);
 
-	for (uint32_t i = 0; i < len; i++)
+	for (uint32_t i = 0; i < len; i++) {
 		bcm2835_gpio_write(pin, buf[i]);
+	}
 }
 
 NAN_METHOD(gpio_pad_read)
@@ -195,11 +197,13 @@ NAN_METHOD(gpio_event_set)
 	 * Add the requested events, using the synchronous rising and
 	 * falling edge detection bits.
 	 */
-	if (direction & RPIO_EVENT_HIGH)
+	if (direction & RPIO_EVENT_HIGH) {
 		bcm2835_gpio_ren(pin);
+	}
 
-	if (direction & RPIO_EVENT_LOW)
+	if (direction & RPIO_EVENT_LOW) {
 		bcm2835_gpio_fen(pin);
+	}
 }
 
 NAN_METHOD(gpio_event_poll)
@@ -214,8 +218,9 @@ NAN_METHOD(gpio_event_poll)
 	 * happened in the time period since the last poll.  There is no way to
 	 * know which trigger caused the event.
 	 */
-	if ((rval = bcm2835_gpio_eds_multi(mask)))
+	if ((rval = bcm2835_gpio_eds_multi(mask))) {
 		bcm2835_gpio_set_eds_multi(rval);
+	}
 
 	NAN_RETURN(rval);
 }
@@ -443,8 +448,9 @@ NAN_METHOD(rpio_init)
 
 	uint32_t gpiomem = FROM_U32(0);
 
-	if (!bcm2835_init(gpiomem))
+	if (!bcm2835_init(gpiomem)) {
 		return ThrowError("Could not initialize bcm2835 GPIO library");
+	}
 }
 
 NAN_METHOD(rpio_close)
