@@ -42,26 +42,46 @@
 
 #define ASSERT_ARGC1(t0)						\
 	do {								\
-		if (NAN_ARGC != 1 || !t0(0))				\
-			return ThrowTypeError("Incorrect arguments");	\
+		if (NAN_ARGC != 1)					\
+			return ThrowTypeError("Invalid argc");		\
+		if (!t0(0))						\
+			return ThrowTypeError("Invalid arg1");		\
 	} while (0)
 
 #define ASSERT_ARGC2(t0, t1)						\
 	do {								\
-		if (NAN_ARGC != 2 || !t0(0) || !t1(1))			\
-			return ThrowTypeError("Incorrect arguments");	\
+		if (NAN_ARGC != 2)					\
+			return ThrowTypeError("Invalid argc");		\
+		if (!t0(0))						\
+			return ThrowTypeError("Invalid arg1");		\
+		if (!t1(1))						\
+			return ThrowTypeError("Invalid arg2");		\
 	} while (0)
 
 #define ASSERT_ARGC3(t0, t1, t2)					\
 	do {								\
-		if (NAN_ARGC != 3 || !t0(0) || !t1(1) || !t2(2))	\
-			return ThrowTypeError("Incorrect arguments");	\
+		if (NAN_ARGC != 3)					\
+			return ThrowTypeError("Invalid argc");		\
+		if (!t0(0))						\
+			return ThrowTypeError("Invalid arg1");		\
+		if (!t1(1))						\
+			return ThrowTypeError("Invalid arg2");		\
+		if (!t2(2))						\
+			return ThrowTypeError("Invalid arg3");		\
 	} while (0)
 
 #define ASSERT_ARGC4(t0, t1, t2, t3)					\
 	do {								\
-		if (NAN_ARGC != 4 || !t0(0) || !t1(1) || !t2(2) || !t3(3)) \
-			return ThrowTypeError("Incorrect arguments");	\
+		if (NAN_ARGC != 4)					\
+			return ThrowTypeError("Invalid argc");		\
+		if (!t0(0))						\
+			return ThrowTypeError("Invalid arg1");		\
+		if (!t1(1))						\
+			return ThrowTypeError("Invalid arg2");		\
+		if (!t2(2))						\
+			return ThrowTypeError("Invalid arg3");		\
+		if (!t3(3))						\
+			return ThrowTypeError("Invalid arg4");		\
 	} while (0)
 
 using namespace Nan;
