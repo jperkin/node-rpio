@@ -104,20 +104,30 @@ NAN_METHOD(gpio_function)
  */
 NAN_METHOD(gpio_read)
 {
-	ASSERT_ARGC1(IS_U32);
+	ASSERT_ARGC2(IS_U32, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
+	uint32_t mode = FROM_U32(1);
+
+	if (mode) {
+		bcm2835_gpio_fsel(pin, 0);
+	}
 
 	NAN_RETURN(bcm2835_gpio_lev(pin));
 }
 
 NAN_METHOD(gpio_readbuf)
 {
-	ASSERT_ARGC3(IS_U32, IS_OBJ, IS_U32);
+	ASSERT_ARGC4(IS_U32, IS_OBJ, IS_U32, IS_U32);
 
 	uint32_t pin = FROM_U32(0);
 	char *buf = FROM_OBJ(1);
 	uint32_t len = FROM_U32(2);
+	uint32_t mode = FROM_U32(3);
+
+	if (mode) {
+		bcm2835_gpio_fsel(pin, 0);
+	}
 
 	for (uint32_t i = 0; i < len; i++) {
 		buf[i] = bcm2835_gpio_lev(pin);

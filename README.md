@@ -403,9 +403,15 @@ rpio.mode(15, rpio.OUTPUT);
 rpio.mode(16, rpio.INPUT, rpio.PULL_UP);
 ```
 
-#### `rpio.read(pin)`
+#### `rpio.read(pin[, mode])`
 
 Read the current value of `pin`, returning either `1` (high) or `0` (low).
+
+If mode is non-zero, perform a switch to input mode before reading.  This can
+help with timing-critical code where the JavaScript function call overhead of
+calling `rpio.mode()` first is enough to miss input data.  Altering the pullup
+state is not supported, as on many devices this requires a delay to activate,
+defeating the point of this feature.
 
 Example:
 
@@ -413,10 +419,17 @@ Example:
 console.log('Pin 16 = %d', rpio.read(16));
 ```
 
-#### `rpio.readbuf(pin, buffer[, length])`
+#### `rpio.readbuf(pin, buffer[, length[, mode]])`
 
-Read `length` bits from `pin` into `buffer` as fast as possible.  If `length`
-isn't specified it defaults to `buffer.length`.
+Read `length` bits from `pin` into `buffer` as fast as possible.
+
+If `length` isn't specified it defaults to `buffer.length`.
+
+If mode is non-zero, perform a switch to input mode before reading.  This can
+help with timing-critical code where the JavaScript function call overhead of
+calling `rpio.mode()` first is enough to miss input data.  Altering the pullup
+state is not supported, as on many devices this requires a delay to activate,
+defeating the point of this feature.
 
 This is useful for devices which send out information faster than the
 JavaScript function call overhead can handle, e.g. if you need microsecond
@@ -430,8 +443,12 @@ Example:
 ```js
 var buf = new Buffer(10000);
 
-/* Read the value of Pin 16 10,000 times in a row, storing the values in buf */
-rpio.readbuf(16, buf);
+/*
+ * Set pin 16 low, then switch pin 16 to input mode and read its value 10,000
+ * times, storing each bit value in buf.
+ */
+rpio.write(16, rpio.LOW);
+rpio.readbuf(16, buf, buf.length, true);
 ```
 
 #### `rpio.write(pin, value)`
