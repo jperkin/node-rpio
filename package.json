@@ -1,7 +1,7 @@
 {
   "name": "rpio",
   "version": "2.2.0",
-  "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi",
+  "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi, Orange Pi, Banana Pi",
   "homepage": "https://www.npmjs.com/package/rpio",
   "main": "./lib/rpio.js",
   "scripts": {
@@ -26,18 +26,24 @@
     "url": "https://github.com/jperkin/node-rpio.git"
   },
   "keywords": [
+    "allwinner",
+    "bananapi",
+    "banana pi",
     "bcm2835",
     "gpio",
     "gpiomem",
     "i2c",
     "mmap",
+    "orangepi",
+    "orange pi",
     "pi",
     "pwm",
     "raspberry",
     "raspberrypi",
     "raspberry pi",
     "rpi",
-    "spi"
+    "spi",
+    "sunxi"
   ],
   "author": "Jonathan Perkin <jonathan@perkin.org.uk> (http://www.perkin.org.uk/)",
   "license": "(ISC AND GPL-2.0)",

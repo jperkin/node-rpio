@@ -2,7 +2,8 @@ node-rpio
 =========
 
 This is a high performance node.js addon which provides access to the Raspberry
-Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
+Pi and SunXi (Allwinner V40) GPIO interfaces, supporting regular GPIO as well
+as i²c, PWM, and SPI.
 
 [![NPM version](https://img.shields.io/npm/v/rpio.svg)](https://www.npmjs.com/package/rpio)
 [![Node.js version](https://img.shields.io/node/v/rpio.svg)](http://nodejs.org/download/)
@@ -15,7 +16,10 @@ Pi GPIO interface, supporting regular GPIO as well as i²c, PWM, and SPI.
 ## Compatibility
 
 * Raspberry Pi Models: A, B, A+, B+, 2, 3, 4, 400, Compute Module, Zero.
+* SunXi (Allwinner V40) Models: Orange Pi Zero, Banana Pi M2 Zero / Berry.
 * Node.js Versions: 0.8, 0.10, 0.12, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14.
+
+Currently only basic GPIO is supported on the SunXi chipsets.
 
 Newer versions of node.js require you to install the GCC 4.8 packages for C++11
 support.  If you see compilation problems related to C++11, this is the likely
@@ -210,9 +214,8 @@ These can be useful to avoid magic numbers in your code.
 
 #### `rpio.init([options])`
 
-Initialise the bcm2835 library.  This will be called automatically by `.open()`
-using the default option values if not called explicitly.  The default values
-are:
+Initialise the library.  This will be called automatically by `.open()` using
+the default option values if not called explicitly.  The default values are:
 
 ```js
 var options = {
@@ -637,7 +640,7 @@ setInterval(function() {
 ### i²c
 
 i²c is primarily of use for driving LCD displays, and makes use of pins 3 and 5
-(GPIO0/GPIO1 on Rev 1, GPIO2/GPIO3 on Rev 2 and newer).  The bcm2835 library
+(GPIO0/GPIO1 on Rev 1, GPIO2/GPIO3 on Rev 2 and newer).  The library
 automatically detects which Raspberry Pi revision you are running, so you do
 not need to worry about which i²c bus to configure.
 
