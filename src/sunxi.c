@@ -92,6 +92,16 @@ typedef enum {
 
 volatile uint32_t *sunxi_gpio = (uint32_t *)MAP_FAILED;
 
+struct PDESettings
+{
+	uint32_t longDuration = 0;
+	uint32_t shortDuration = 0;
+	uint32_t separatorDuration = 0;
+	uint32_t separator = 1;
+};
+
+std::map<uint32_t , PDESettings> pin_settings_map = {};
+
 /*
  * Return the register address for port configuration of a selected pin and
  * register combination.

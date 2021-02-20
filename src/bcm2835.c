@@ -118,10 +118,10 @@ static uint8_t bcm2835_byte_reverse_table[] =
 
 struct PDESettings
 {
-  uint32_t longDuration = 0;
-  uint32_t shortDuration = 0;
-  uint32_t separatorDuration = 0;
-  uint32_t separator = 1;
+	uint32_t longDuration = 0;
+	uint32_t shortDuration = 0;
+	uint32_t separatorDuration = 0;
+	uint32_t separator = 1;
 };
 
 std::map<uint32_t , PDESettings> pin_settings_map = {};
