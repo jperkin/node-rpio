@@ -259,6 +259,46 @@ sunxi_gpio_fsel(uint32_t pin, uint8_t mode)
 	}
 }
 
+void sunxi_pde_set_separator_duration(uint32_t pin, uint32_t duration)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).separatorDuration = duration;
+}
+
+void sunxi_pde_set_short_duration(uint32_t pin, uint32_t duration)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).shortDuration = duration;
+}
+
+void sunxi_pde_set_long_duration(uint32_t pin, uint32_t duration)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+  pin_settings_map.at(pin).longDuration = duration;
+}
+
+void sunxi_pde_set_separator(uint32_t pin, uint32_t separator)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).separator = separator;
+}
+
+void sunxi_pde_write() {
+	// TODO: Implement me!
+}
+
 /*
  * Convenience functions.
  */

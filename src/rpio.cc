@@ -498,12 +498,12 @@ NAN_METHOD(spi_write)
 	char *buf = FROM_OBJ(0);
 	uint32_t len = FROM_U32(1);
 
-  bcm2835_spi_writenb(buf, len);
+	bcm2835_spi_writenb(buf, len);
 }
 
 NAN_METHOD(spi_end)
 {
-  bcm2835_spi_end();
+	bcm2835_spi_end();
 }
 
 NAN_METHOD(pde_set_separator_duration)
@@ -514,14 +514,12 @@ NAN_METHOD(pde_set_separator_duration)
 	uint32_t duration = FROM_U32(1);
 
 	switch (soctype) {
-		case RPIO_SOC_BCM2835:
-			// TODO
-			// bcm2835_gpio_write(pin, duration);
-			break;
-		case RPIO_SOC_SUNXI:
-			// TODO
-			// sunxi_gpio_write(pin, duration);
-			break;
+	case RPIO_SOC_BCM2835:
+		bcm2835_pde_set_separator_duration(pin, duration);
+		break;
+	case RPIO_SOC_SUNXI:
+		sunxi_pde_set_separator_duration(pin, duration);
+		break;
 	}
 }
 
@@ -534,12 +532,10 @@ NAN_METHOD(pde_set_short_duration)
 
 	switch (soctype) {
 		case RPIO_SOC_BCM2835:
-			// TODO
-			// bcm2835_gpio_write(pin, duration);
+			bcm2835_pde_set_short_duration(pin, duration);
 			break;
 		case RPIO_SOC_SUNXI:
-			// TODO
-			// sunxi_gpio_write(pin, duration);
+			sunxi_pde_set_short_duration(pin, duration);
 			break;
 	}
 }
@@ -553,12 +549,10 @@ NAN_METHOD(pde_set_long_duration)
 
 	switch (soctype) {
 		case RPIO_SOC_BCM2835:
-			// TODO
-			// bcm2835_gpio_write(pin, duration);
+			bcm2835_pde_set_long_duration(pin, duration);
 			break;
 		case RPIO_SOC_SUNXI:
-			// TODO
-			// sunxi_gpio_write(pin, duration);
+			sunxi_pde_set_long_duration(pin, duration);
 			break;
 	}
 }
@@ -572,12 +566,10 @@ NAN_METHOD(pde_set_separator)
 
 	switch (soctype) {
 		case RPIO_SOC_BCM2835:
-			// TODO
-			// bcm2835_gpio_write(pin, separator);
+			bcm2835_pde_set_separator(pin, separator);
 			break;
 		case RPIO_SOC_SUNXI:
-			// TODO
-			// sunxi_gpio_write(pin, separator);
+			sunxi_pde_set_separator(pin, separator);
 			break;
 	}
 }
@@ -683,6 +675,11 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, spi_transfer);
 	NAN_EXPORT(target, spi_write);
 	NAN_EXPORT(target, spi_end);
+	NAN_EXPORT(target, pde_set_separator_duration);
+	NAN_EXPORT(target, pde_set_short_duration);
+	NAN_EXPORT(target, pde_set_long_duration);
+	NAN_EXPORT(target, pde_set_separator);
+	NAN_EXPORT(target, pde_write);
 }
 
 #else /* __linux__ */

@@ -116,6 +116,16 @@ static uint8_t bcm2835_byte_reverse_table[] =
     0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
 };
 
+struct PDESettings
+{
+  uint32_t longDuration = 0;
+  uint32_t shortDuration = 0;
+  uint32_t separatorDuration = 0;
+  uint32_t separator = 1;
+};
+
+std::map<uint32_t , PDESettings> pin_settings_map = {};
+
 static uint8_t bcm2835_correct_order(uint8_t b)
 {
     if (bcm2835_spi_bit_order == BCM2835_SPI_BIT_ORDER_LSBFIRST)
@@ -931,6 +941,46 @@ void bcm2835_spi_write(uint16_t data)
     /* Set TA = 0, and also set the barrier */
     bcm2835_peri_set_bits(paddr, 0, BCM2835_SPI0_CS_TA);
 #endif
+}
+
+void bcm2835_pde_set_separator_duration(uint32_t pin, uint32_t duration)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).separatorDuration = duration;
+}
+
+void bcm2835_pde_set_short_duration(uint32_t pin, uint32_t duration)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).shortDuration = duration;
+}
+
+void bcm2835_pde_set_long_duration(uint32_t pin, uint32_t duration)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).longDuration = duration;
+}
+
+void bcm2835_pde_set_separator(uint32_t pin, uint32_t separator)
+{
+	if (!pin_settings_map.contains(pin)) {
+		pin_settings_map.emplace(pin, {});
+	}
+
+	pin_settings_map.at(pin).separator = separator;
+}
+
+void bcm2835_pde_write() {
+	// TODO: Implement me!
 }
 
 int bcm2835_aux_spi_begin(void)
