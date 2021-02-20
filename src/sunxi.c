@@ -305,7 +305,7 @@ void sunxi_pde_set_separator(uint32_t pin, uint32_t separator)
 	pin_settings_map.at(pin).separator = separator;
 }
 
-void sunxi_pde_write() {
+void sunxi_pde_write(uint32_t pin, char* buf, uint32_t len) {
 	// TODO: Implement me!
 }
 

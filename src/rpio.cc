@@ -582,18 +582,13 @@ NAN_METHOD(pde_write)
 	char *buf = FROM_OBJ(1);
 	uint32_t len = FROM_U32(2);
 
-	// TODO: Fix this; this is just copy/pasted from gpio_writebuf
 	switch (soctype) {
-		case RPIO_SOC_BCM2835:
-			for (uint32_t i = 0; i < len; i++) {
-				bcm2835_gpio_write(pin, buf[i]);
-			}
-			break;
-		case RPIO_SOC_SUNXI:
-			for (uint32_t i = 0; i < len; i++) {
-				sunxi_gpio_write(pin, buf[i]);
-			}
-			break;
+	case RPIO_SOC_BCM2835:
+		bcm2835_pde_write(pin, buf[i], len);
+		break;
+	case RPIO_SOC_SUNXI:
+		sunxi_pde_write(pin, buf[i], len);
+		break;
 	}
 }
 
