@@ -305,8 +305,82 @@ void sunxi_pde_set_separator(uint32_t pin, uint32_t separator)
 	pin_settings_map.at(pin).separator = separator;
 }
 
-void sunxi_pde_write(uint32_t pin, char* buf, uint32_t len) {
-	// TODO: Implement me!
+void sunxi_delayMicroseconds(uint64_t micros)
+{
+	// TODO: Implement this
+}
+
+void sunxi_pde_write(uint32_t pin, char* buf, uint32_t len)
+{
+	// validate that pin_settings_map[pin] is correct
+	if (!pin_settings_map.contains(pin)) {
+		char* error [48];
+		sprintf(error, "Pin %d was not configured before calling write!", pin);
+		throw new exception(error);
+	}
+
+	if (pin_settings_map[pin].longDuration == 0) {
+		char* error [56];
+		sprintf(error, "Pin %d's longDuration was not set before calling write!", pin);
+		throw new exception(error);
+	}
+
+	if (pin_settings_map[pin].shortDuration == 0) {
+		char* error [57];
+		sprintf(error, "Pin %d's shortDuration was not set before calling write!", pin);
+		throw new exception(error);
+	}
+
+	if (pin_settings_map[pin].separatorDuration == 0) {
+		char* error [61];
+		sprintf(error, "Pin %d's separatorDuration was not set before calling write!", pin);
+		throw new exception(error);
+	}
+
+	// implied: separator will be 0 or 1, with default being set upstream in node (lib/rpio.js)
+	if (pin_settings_map[pin].separator > 1) {
+		char* error [83];
+		sprintf(error, "Pin %d's separator was set to an incorrect value (not 0 or 1) before calling write!", pin);
+		throw new exception(error);
+	}
+
+	// TODO: verify len <= buf.len
+
+	if (pin_settings_map[pin].separator) {
+		sunxi_gpio_set(pin);
+	} else {
+		sunxi_gpio_clr(pin);
+	}
+
+	sunxi_delayMicroseconds(pin_settings_map[pin].separatorDuration);
+
+	for(uint32_t index = 0; index < len; index++) {
+		// TODO: LSB. Should allow customizing for MSB as well
+		for(int bitdex = 0; bitdex < 8; bitdex++) {
+			// do the "encoded" bit
+			if (!pin_settings_map[pin].separator) {
+				sunxi_gpio_set(pin);
+			} else {
+				sunxi_gpio_clr(pin);
+			}
+
+			// TODO: should these be renamed? long is actually "high", short is actually "low"
+			if ((buf[index] >> bitdex) & 0x01) {
+				sunxi_delayMicroseconds(pin_settings_map[pin].longDuration);
+			} else {
+				sunxi_delayMicroseconds(pin_settings_map[pin].shortDuration);
+			}
+
+			// do the "separator" bit
+			if (pin_settings_map[pin].separator) {
+				sunxi_gpio_set(pin);
+			} else {
+				sunxi_gpio_clr(pin);
+			}
+
+			sunxi_delayMicroseconds(pin_settings_map[pin].separatorDuration);
+		}
+	}
 }
 
 /*
