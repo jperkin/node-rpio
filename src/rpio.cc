@@ -506,6 +506,101 @@ NAN_METHOD(spi_end)
 	bcm2835_spi_end();
 }
 
+NAN_METHOD(pde_set_separator_duration)
+{
+  ASSERT_ARGC2(IS_U32, IS_U32);
+
+	uint32_t pin = FROM_U32(0);
+	uint32_t duration = FROM_U32(1);
+
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+    // TODO
+		// bcm2835_gpio_write(pin, duration);
+		break;
+	case RPIO_SOC_SUNXI:
+    // TODO
+		// sunxi_gpio_write(pin, duration);
+		break;
+}
+
+NAN_METHOD(pde_set_short_duration)
+{
+  ASSERT_ARGC2(IS_U32, IS_U32);
+
+	uint32_t pin = FROM_U32(0);
+	uint32_t duration = FROM_U32(1);
+
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+    // TODO
+		// bcm2835_gpio_write(pin, duration);
+		break;
+	case RPIO_SOC_SUNXI:
+    // TODO
+		// sunxi_gpio_write(pin, duration);
+		break;
+}
+
+NAN_METHOD(pde_set_long_duration)
+{
+  ASSERT_ARGC2(IS_U32, IS_U32);
+
+	uint32_t pin = FROM_U32(0);
+	uint32_t duration = FROM_U32(1);
+
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+    // TODO
+		// bcm2835_gpio_write(pin, duration);
+		break;
+	case RPIO_SOC_SUNXI:
+    // TODO
+		// sunxi_gpio_write(pin, duration);
+		break;
+}
+
+NAN_METHOD(pde_set_separator)
+{
+  ASSERT_ARGC2(IS_U32, IS_U32);
+
+	uint32_t pin = FROM_U32(0);
+	uint32_t separator = FROM_U32(1);
+
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+    // TODO
+		// bcm2835_gpio_write(pin, separator);
+		break;
+	case RPIO_SOC_SUNXI:
+    // TODO
+		// sunxi_gpio_write(pin, separator);
+		break;
+}
+
+NAN_METHOD(pde_write)
+{
+  ASSERT_ARGC3(IS_U32, IS_OBJ, IS_U32);
+
+	uint32_t pin = FROM_U32(0);
+	char *buf = FROM_OBJ(1);
+	uint32_t len = FROM_U32(2);
+
+  // TODO: Fix this; this is just copy/pasted from gpio_writebuf
+	switch (soctype) {
+	case RPIO_SOC_BCM2835:
+		for (uint32_t i = 0; i < len; i++) {
+			bcm2835_gpio_write(pin, buf[i]);
+		}
+		break;
+	case RPIO_SOC_SUNXI:
+		for (uint32_t i = 0; i < len; i++) {
+			sunxi_gpio_write(pin, buf[i]);
+		}
+		break;
+	}
+}
+
 /*
  * Initialize the bcm2835 interface and check we have permission to access it.
  */
