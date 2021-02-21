@@ -22,6 +22,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <map>
 
 #include "sunxi.h"
 
@@ -94,13 +95,13 @@ volatile uint32_t *sunxi_gpio = (uint32_t *)MAP_FAILED;
 
 struct PDESettings
 {
-	uint32_t longDuration = 0;
-	uint32_t shortDuration = 0;
-	uint32_t separatorDuration = 0;
-	uint32_t separator = 1;
+	uint32_t longDuration;
+	uint32_t shortDuration;
+	uint32_t separatorDuration;
+	uint32_t separator;
 };
 
-std::map<uint32_t , PDESettings> pin_settings_map = {};
+std::map<uint32_t, PDESettings> sunxi_pin_settings_map = {};
 
 /*
  * Return the register address for port configuration of a selected pin and
@@ -271,38 +272,38 @@ sunxi_gpio_fsel(uint32_t pin, uint8_t mode)
 
 void sunxi_pde_set_separator_duration(uint32_t pin, uint32_t duration)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (sunxi_pin_settings_map.find(pin) == sunxi_pin_settings_map.end()) {
+		sunxi_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).separatorDuration = duration;
+	sunxi_pin_settings_map.at(pin).separatorDuration = duration;
 }
 
 void sunxi_pde_set_short_duration(uint32_t pin, uint32_t duration)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (sunxi_pin_settings_map.find(pin) == sunxi_pin_settings_map.end()) {
+		sunxi_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).shortDuration = duration;
+	sunxi_pin_settings_map.at(pin).shortDuration = duration;
 }
 
 void sunxi_pde_set_long_duration(uint32_t pin, uint32_t duration)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (sunxi_pin_settings_map.find(pin) == sunxi_pin_settings_map.end()) {
+		sunxi_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-  pin_settings_map.at(pin).longDuration = duration;
+  sunxi_pin_settings_map.at(pin).longDuration = duration;
 }
 
 void sunxi_pde_set_separator(uint32_t pin, uint32_t separator)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (sunxi_pin_settings_map.find(pin) == sunxi_pin_settings_map.end()) {
+		sunxi_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).separator = separator;
+	sunxi_pin_settings_map.at(pin).separator = separator;
 }
 
 void sunxi_delayMicroseconds(uint64_t micros)
@@ -312,53 +313,46 @@ void sunxi_delayMicroseconds(uint64_t micros)
 
 void sunxi_pde_write(uint32_t pin, char* buf, uint32_t len)
 {
-	// validate that pin_settings_map[pin] is correct
-	if (!pin_settings_map.contains(pin)) {
-		char* error [48];
-		sprintf(error, "Pin %d was not configured before calling write!", pin);
-		throw new exception(error);
+	// validate that sunxi_pin_settings_map[pin] is correct
+	if (sunxi_pin_settings_map.find(pin) == sunxi_pin_settings_map.end()) {
+		char error [48];
+		throw sprintf(error, "Pin %d was not configured before calling write!", pin);
 	}
 
-	if (pin_settings_map[pin].longDuration == 0) {
-		char* error [56];
-		sprintf(error, "Pin %d's longDuration was not set before calling write!", pin);
-		throw new exception(error);
+	if (sunxi_pin_settings_map[pin].longDuration == 0) {
+		char error [56];
+		throw sprintf(error, "Pin %d's longDuration was not set before calling write!", pin);
 	}
 
-	if (pin_settings_map[pin].shortDuration == 0) {
-		char* error [57];
-		sprintf(error, "Pin %d's shortDuration was not set before calling write!", pin);
-		throw new exception(error);
+	if (sunxi_pin_settings_map[pin].shortDuration == 0) {
+		char error [57];
+		throw sprintf(error, "Pin %d's shortDuration was not set before calling write!", pin);
 	}
 
-	if (pin_settings_map[pin].separatorDuration == 0) {
-		char* error [61];
-		sprintf(error, "Pin %d's separatorDuration was not set before calling write!", pin);
-		throw new exception(error);
+	if (sunxi_pin_settings_map[pin].separatorDuration == 0) {
+		char error [61];
+		throw sprintf(error, "Pin %d's separatorDuration was not set before calling write!", pin);
 	}
 
 	// implied: separator will be 0 or 1, with default being set upstream in node (lib/rpio.js)
-	if (pin_settings_map[pin].separator > 1) {
-		char* error [83];
-		sprintf(error, "Pin %d's separator was set to an incorrect value (not 0 or 1) before calling write!", pin);
-		throw new exception(error);
+	if (sunxi_pin_settings_map[pin].separator > 1) {
+		char error [83];
+		throw sprintf(error, "Pin %d's separator was set to an incorrect value (not 0 or 1) before calling write!", pin);
 	}
 
-	// TODO: verify len <= buf.len
-
-	if (pin_settings_map[pin].separator) {
+	if (sunxi_pin_settings_map[pin].separator) {
 		sunxi_gpio_set(pin);
 	} else {
 		sunxi_gpio_clr(pin);
 	}
 
-	sunxi_delayMicroseconds(pin_settings_map[pin].separatorDuration);
+	sunxi_delayMicroseconds(sunxi_pin_settings_map[pin].separatorDuration);
 
 	for(uint32_t index = 0; index < len; index++) {
 		// TODO: LSB. Should allow customizing for MSB as well
 		for(int bitdex = 0; bitdex < 8; bitdex++) {
 			// do the "encoded" bit
-			if (!pin_settings_map[pin].separator) {
+			if (!sunxi_pin_settings_map[pin].separator) {
 				sunxi_gpio_set(pin);
 			} else {
 				sunxi_gpio_clr(pin);
@@ -366,19 +360,19 @@ void sunxi_pde_write(uint32_t pin, char* buf, uint32_t len)
 
 			// TODO: should these be renamed? long is actually "high", short is actually "low"
 			if ((buf[index] >> bitdex) & 0x01) {
-				sunxi_delayMicroseconds(pin_settings_map[pin].longDuration);
+				sunxi_delayMicroseconds(sunxi_pin_settings_map[pin].longDuration);
 			} else {
-				sunxi_delayMicroseconds(pin_settings_map[pin].shortDuration);
+				sunxi_delayMicroseconds(sunxi_pin_settings_map[pin].shortDuration);
 			}
 
 			// do the "separator" bit
-			if (pin_settings_map[pin].separator) {
+			if (sunxi_pin_settings_map[pin].separator) {
 				sunxi_gpio_set(pin);
 			} else {
 				sunxi_gpio_clr(pin);
 			}
 
-			sunxi_delayMicroseconds(pin_settings_map[pin].separatorDuration);
+			sunxi_delayMicroseconds(sunxi_pin_settings_map[pin].separatorDuration);
 		}
 	}
 }

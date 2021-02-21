@@ -1980,12 +1980,18 @@ extern "C" {
       \param[in] data Controls the PWM output ratio as a fraction of the range. 
       Can vary from 0 to RANGE.
     */
+    /*! @}  */
     extern void bcm2835_pwm_set_data(uint8_t channel, uint32_t data);
 
-    /*! @}  */
 #ifdef __cplusplus
 }
 #endif
+
+extern void bcm2835_pde_set_separator_duration(uint32_t pin, uint32_t duration);
+extern void bcm2835_pde_set_short_duration(uint32_t pin, uint32_t duration);
+extern void bcm2835_pde_set_long_duration(uint32_t pin, uint32_t duration);
+extern void bcm2835_pde_set_separator(uint32_t pin, uint32_t separator);
+extern void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len);
 
 #endif /* BCM2835_H */
 

@@ -8,9 +8,11 @@
       ],
       "conditions": [
         ["OS == 'linux'", {
+          "cflags": ["-fpermissive",  "-fexceptions", "-Wmisleading-indentation"],
+          "cflags_cc": ["-fpermissive",  "-fexceptions", "-Wmisleading-indentation"],
           "sources": [
-            "src/bcm2835.c",
-            "src/sunxi.c"
+            "src/bcm2835.cpp",
+            "src/sunxi.cpp"
 	  ]
 	}]
       ]

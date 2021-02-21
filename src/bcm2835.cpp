@@ -16,6 +16,7 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <map>
 
 #define BCK2835_LIBRARY_BUILD
 #include "bcm2835.h"
@@ -116,16 +117,6 @@ static uint8_t bcm2835_byte_reverse_table[] =
     0x1f, 0x9f, 0x5f, 0xdf, 0x3f, 0xbf, 0x7f, 0xff
 };
 
-struct PDESettings
-{
-	uint32_t longDuration = 0;
-	uint32_t shortDuration = 0;
-	uint32_t separatorDuration = 0;
-	uint32_t separator = 1;
-};
-
-std::map<uint32_t , PDESettings> pin_settings_map = {};
-
 static uint8_t bcm2835_correct_order(uint8_t b)
 {
     if (bcm2835_spi_bit_order == BCM2835_SPI_BIT_ORDER_LSBFIRST)
@@ -184,6 +175,16 @@ uint32_t* bcm2835_regbase(uint8_t regbase)
     }
     return (uint32_t *)MAP_FAILED;
 }
+
+struct PDESettings
+{
+	uint32_t longDuration;
+	uint32_t shortDuration;
+	uint32_t separatorDuration;
+	uint32_t separator;
+};
+
+std::map<uint32_t, PDESettings> bcm2835_pin_settings_map = {};
 
 void  bcm2835_set_debug(uint8_t d)
 {
@@ -945,89 +946,82 @@ void bcm2835_spi_write(uint16_t data)
 
 void bcm2835_pde_set_separator_duration(uint32_t pin, uint32_t duration)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (bcm2835_pin_settings_map.find(pin) == bcm2835_pin_settings_map.end()) {
+		bcm2835_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).separatorDuration = duration;
+	bcm2835_pin_settings_map.at(pin).separatorDuration = duration;
 }
 
 void bcm2835_pde_set_short_duration(uint32_t pin, uint32_t duration)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (bcm2835_pin_settings_map.find(pin) == bcm2835_pin_settings_map.end()) {
+		bcm2835_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).shortDuration = duration;
+	bcm2835_pin_settings_map.at(pin).shortDuration = duration;
 }
 
 void bcm2835_pde_set_long_duration(uint32_t pin, uint32_t duration)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (bcm2835_pin_settings_map.find(pin) == bcm2835_pin_settings_map.end()) {
+		bcm2835_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).longDuration = duration;
+	bcm2835_pin_settings_map.at(pin).longDuration = duration;
 }
 
 void bcm2835_pde_set_separator(uint32_t pin, uint32_t separator)
 {
-	if (!pin_settings_map.contains(pin)) {
-		pin_settings_map.emplace(pin, {});
+	if (bcm2835_pin_settings_map.find(pin) == bcm2835_pin_settings_map.end()) {
+		bcm2835_pin_settings_map.insert(std::make_pair(pin, PDESettings()));
 	}
 
-	pin_settings_map.at(pin).separator = separator;
+	bcm2835_pin_settings_map.at(pin).separator = separator;
 }
 
 void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len)
 {
-	// validate that pin_settings_map[pin] is correct
-	if (!pin_settings_map.contains(pin)) {
-		char* error [48];
-		sprintf(error, "Pin %d was not configured before calling write!", pin);
-		throw new exception(error);
+	// validate that bcm2835_pin_settings_map[pin] is correct
+	if (bcm2835_pin_settings_map.find(pin) == bcm2835_pin_settings_map.end()) {
+		char error [48];
+		throw sprintf(error, "Pin %d was not configured before calling write!", pin);
 	}
 
-	if (pin_settings_map[pin].longDuration == 0) {
-		char* error [56];
-		sprintf(error, "Pin %d's longDuration was not set before calling write!", pin);
-		throw new exception(error);
+	if (bcm2835_pin_settings_map[pin].longDuration == 0) {
+		char error [56];
+		throw sprintf(error, "Pin %d's longDuration was not set before calling write!", pin);
 	}
 
-	if (pin_settings_map[pin].shortDuration == 0) {
-		char* error [57];
-		sprintf(error, "Pin %d's shortDuration was not set before calling write!", pin);
-		throw new exception(error);
+	if (bcm2835_pin_settings_map[pin].shortDuration == 0) {
+		char error [57];
+		throw sprintf(error, "Pin %d's shortDuration was not set before calling write!", pin);
 	}
 
-	if (pin_settings_map[pin].separatorDuration == 0) {
-		char* error [61];
-		sprintf(error, "Pin %d's separatorDuration was not set before calling write!", pin);
-		throw new exception(error);
+	if (bcm2835_pin_settings_map[pin].separatorDuration == 0) {
+		char error [61];
+		throw sprintf(error, "Pin %d's separatorDuration was not set before calling write!", pin);
 	}
 
 	// implied: separator will be 0 or 1, with default being set upstream in node (lib/rpio.js)
-	if (pin_settings_map[pin].separator > 1) {
-		char* error [83];
-		sprintf(error, "Pin %d's separator was set to an incorrect value (not 0 or 1) before calling write!", pin);
-		throw new exception(error);
+	if (bcm2835_pin_settings_map[pin].separator > 1) {
+		char error [83];
+		throw sprintf(error, "Pin %d's separator was set to an incorrect value (not 0 or 1) before calling write!", pin);
 	}
 
-	// TODO: verify len <= buf.len
-
-	if (pin_settings_map[pin].separator) {
+	if (bcm2835_pin_settings_map[pin].separator) {
 		bcm2835_gpio_set(pin);
 	} else {
 		bcm2835_gpio_clr(pin);
 	}
 
-	bcm2835_delayMicroseconds(pin_settings_map[pin].separatorDuration);
+	bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].separatorDuration);
 
 	for(uint32_t index = 0; index < len; index++) {
 		// TODO: LSB. Should allow customizing for MSB as well
 		for(int bitdex = 0; bitdex < 8; bitdex++) {
 			// do the "encoded" bit
-			if (!pin_settings_map[pin].separator) {
+			if (!bcm2835_pin_settings_map[pin].separator) {
 				bcm2835_gpio_set(pin);
 			} else {
 				bcm2835_gpio_clr(pin);
@@ -1035,19 +1029,19 @@ void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len)
 
 			// TODO: should these be renamed? long is actually "high", short is actually "low"
 			if ((buf[index] >> bitdex) & 0x01) {
-				bcm2835_delayMicroseconds(pin_settings_map[pin].longDuration);
+				bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].longDuration);
 			} else {
-				bcm2835_delayMicroseconds(pin_settings_map[pin].shortDuration);
+				bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].shortDuration);
 			}
 
 			// do the "separator" bit
-			if (pin_settings_map[pin].separator) {
+			if (bcm2835_pin_settings_map[pin].separator) {
 				bcm2835_gpio_set(pin);
 			} else {
 				bcm2835_gpio_clr(pin);
 			}
 
-			bcm2835_delayMicroseconds(pin_settings_map[pin].separatorDuration);
+			bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].separatorDuration);
 		}
 	}
 }

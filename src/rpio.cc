@@ -584,10 +584,10 @@ NAN_METHOD(pde_write)
 
 	switch (soctype) {
 	case RPIO_SOC_BCM2835:
-		bcm2835_pde_write(pin, buf[i], len);
+		bcm2835_pde_write(pin, buf, len);
 		break;
 	case RPIO_SOC_SUNXI:
-		sunxi_pde_write(pin, buf[i], len);
+		sunxi_pde_write(pin, buf, len);
 		break;
 	}
 }
