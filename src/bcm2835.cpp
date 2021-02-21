@@ -1042,6 +1042,12 @@ void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len)
 			}
 
 			bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].separatorDuration);
+
+			if (!bcm2835_pin_settings_map[pin].separator) {
+				bcm2835_gpio_set(pin);
+			} else {
+				bcm2835_gpio_clr(pin);
+			}
 		}
 	}
 }

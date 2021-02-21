@@ -373,6 +373,12 @@ void sunxi_pde_write(uint32_t pin, char* buf, uint32_t len)
 			}
 
 			sunxi_delayMicroseconds(sunxi_pin_settings_map[pin].separatorDuration);
+
+			if (!sunxi_pin_settings_map[pin].separator) {
+				sunxi_gpio_set(pin);
+			} else {
+				sunxi_gpio_clr(pin);
+			}
 		}
 	}
 }
