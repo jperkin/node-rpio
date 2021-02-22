@@ -17,6 +17,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <map>
+#include <iostream>
+#include <chrono>
 
 #define BCK2835_LIBRARY_BUILD
 #include "bcm2835.h"
@@ -579,6 +581,16 @@ void bcm2835_delayMicroseconds(uint64_t micros)
     bcm2835_st_delay(start, micros);
 }
 
+/* microseconds, busy loop off clock rate */
+void bcm2835_delayMicrosecondsBusy(uint64_t micros)
+{
+	uint64_t cycles = BCM2835_CORE_CLK_HZ / 1000000 * micros;
+	while(cycles > 0) {
+		cycles--;
+		__asm__ volatile("" : "+g" (cycles) : :);
+	}
+}
+
 /*
 // Higher level convenience functions
 */
@@ -1015,7 +1027,7 @@ void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len)
 		bcm2835_gpio_clr(pin);
 	}
 
-	bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].separatorDuration);
+	bcm2835_delayMicrosecondsBusy(bcm2835_pin_settings_map[pin].separatorDuration);
 
 	for(uint32_t index = 0; index < len; index++) {
 		// TODO: LSB. Should allow customizing for MSB as well
@@ -1029,9 +1041,9 @@ void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len)
 
 			// TODO: should these be renamed? long is actually "high", short is actually "low"
 			if ((buf[index] >> bitdex) & 0x01) {
-				bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].longDuration);
+				bcm2835_delayMicrosecondsBusy(bcm2835_pin_settings_map[pin].longDuration);
 			} else {
-				bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].shortDuration);
+				bcm2835_delayMicrosecondsBusy(bcm2835_pin_settings_map[pin].shortDuration);
 			}
 
 			// do the "separator" bit
@@ -1041,7 +1053,7 @@ void bcm2835_pde_write(uint32_t pin, char* buf, uint32_t len)
 				bcm2835_gpio_clr(pin);
 			}
 
-			bcm2835_delayMicroseconds(bcm2835_pin_settings_map[pin].separatorDuration);
+			bcm2835_delayMicrosecondsBusy(bcm2835_pin_settings_map[pin].separatorDuration);
 
 			if (!bcm2835_pin_settings_map[pin].separator) {
 				bcm2835_gpio_set(pin);
