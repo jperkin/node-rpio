@@ -1,6 +1,6 @@
 {
   "name": "rpio",
-  "version": "2.4.2",
+  "version": "2.4.3",
   "description": "High performance GPIO/i2c/PWM/SPI module for Raspberry Pi, Orange Pi, Banana Pi",
   "homepage": "https://www.npmjs.com/package/rpio",
   "main": "./lib/rpio.js",
