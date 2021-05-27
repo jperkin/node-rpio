@@ -505,6 +505,77 @@ NAN_METHOD(spi_end)
 {
 	bcm2835_spi_end();
 }
+/*
+ * AUX_SPI functions.
+ */
+NAN_METHOD(aux_spi_begin)
+{
+	bcm2835_aux_spi_begin();
+}
+
+// NAN_METHOD(aux_spi_chip_select)
+// {
+// 	ASSERT_ARGC1(IS_U32);
+
+// 	uint32_t cs = FROM_U32(0);
+
+// 	bcm2835_aux_spi_chipSelect(cs);
+// }
+
+// NAN_METHOD(aux_spi_set_cs_polarity)
+// {
+// 	ASSERT_ARGC2(IS_U32, IS_U32);
+
+// 	uint32_t cs = FROM_U32(0);
+// 	uint32_t active = FROM_U32(1);
+
+// 	bcm2835_aux_spi_setChipSelectPolarity(cs, active);
+// }
+
+NAN_METHOD(aux_spi_set_clock_divider)
+{
+	ASSERT_ARGC1(IS_U32);
+
+	uint32_t divider = FROM_U32(0);
+
+	bcm2835_aux_spi_setClockDivider(divider);
+}
+
+// NAN_METHOD(aux_spi_set_data_mode)
+// {
+// 	ASSERT_ARGC1(IS_U32);
+
+// 	uint32_t mode = FROM_U32(0);
+
+// 	bcm2835_aux_spi_setDataMode(mode);
+// }
+
+NAN_METHOD(aux_spi_transfer)
+{
+	ASSERT_ARGC3(IS_OBJ, IS_OBJ, IS_U32);
+
+	char *tbuf = FROM_OBJ(0);
+	char *rbuf = FROM_OBJ(1);
+	uint32_t len = FROM_U32(2);
+
+	bcm2835_aux_spi_transfernb(tbuf, rbuf, len);
+}
+
+NAN_METHOD(aux_spi_write)
+{
+	ASSERT_ARGC2(IS_OBJ, IS_U32);
+
+	char *buf = FROM_OBJ(0);
+	uint32_t len = FROM_U32(1);
+
+	bcm2835_aux_spi_writenb(buf, len);
+}
+
+NAN_METHOD(aux_spi_end)
+{
+	bcm2835_aux_spi_end();
+}
+
 
 /*
  * Initialize the bcm2835 interface and check we have permission to access it.
@@ -584,6 +655,14 @@ NAN_MODULE_INIT(setup)
 	NAN_EXPORT(target, spi_transfer);
 	NAN_EXPORT(target, spi_write);
 	NAN_EXPORT(target, spi_end);
+	NAN_EXPORT(target, aux_spi_begin);
+//	NAN_EXPORT(target, aux_spi_chip_select);
+//	NAN_EXPORT(target, aux_spi_set_cs_polarity);
+	NAN_EXPORT(target, aux_spi_set_clock_divider);
+//	NAN_EXPORT(target, aux_spi_set_data_mode);
+	NAN_EXPORT(target, aux_spi_transfer);
+	NAN_EXPORT(target, aux_spi_write);
+	NAN_EXPORT(target, aux_spi_end);
 }
 
 #else /* __linux__ */
@@ -597,4 +676,9 @@ NAN_MODULE_INIT(setup)
 
 #endif
 
+#if NODE_MAJOR_VERSION >= 10
+NAN_MODULE_WORKER_ENABLED(rpio, setup)
+#else
 NODE_MODULE(rpio, setup)
+#endif
+
