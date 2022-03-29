@@ -17,7 +17,7 @@ as i²c, PWM, and SPI.
 
 * Raspberry Pi Models: A, B, A+, B+, 2, 3, 4, 400, Compute Module, Zero.
 * SunXi (Allwinner V40) Models: Orange Pi Zero, Banana Pi M2 Zero / Berry.
-* Node.js Versions: 0.8, 0.10, 0.12, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14.
+* Node.js Versions: 0.8, 0.10, 0.12, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
 
 Currently only basic GPIO is supported on the SunXi chipsets.
 
