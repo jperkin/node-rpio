@@ -63,6 +63,12 @@ matrix:
     #- name: 'Ubuntu - Node.js 15'
     #  os: linux
     #  node_js: "15"
+    - name: 'Ubuntu - Node.js 18'
+      os: linux
+      node_js: "18"
+    - name: 'Ubuntu - Node.js 16'
+      os: linux
+      node_js: "16"
     - name: 'Ubuntu - Node.js 14'
       os: linux
       node_js: "14"
