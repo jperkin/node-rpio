@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "bindings": "~1.5.0",
-    "nan": "^2.14.1"
+    "nan": "^2.18.0"
   },
   "devDependencies": {
     "eslint": "~6.5.0",
